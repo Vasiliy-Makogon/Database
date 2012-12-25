@@ -174,6 +174,10 @@ class Krugozor_Database_Mysql
 
     protected $password;
 
+    protected $port;
+
+    protected $socket;
+
     /**
      * Имя текущей БД.
      *
@@ -228,9 +232,9 @@ class Krugozor_Database_Mysql
      * @param string $username имя пользователя
      * @param string $password пароль
      */
-    public static function create($server, $username, $password)
+    public static function create($server, $username, $password, $port=null, $socket=null)
     {
-        return new self($server, $username, $password);
+        return new self($server, $username, $password, $port, $socket);
     }
 
     /**
@@ -461,11 +465,13 @@ class Krugozor_Database_Mysql
      * @param string $password
      * @return void
      */
-    private function __construct($server, $user, $password)
+    private function __construct($server, $user, $password, $port, $socket)
     {
         $this->server   = $server;
         $this->user = $user;
         $this->password = $password;
+        $this->port = $port;
+        $this->socket = $socket;
     }
 
     /**
@@ -478,7 +484,7 @@ class Krugozor_Database_Mysql
     {
         if (!is_object($this->lnk) || !$this->lnk instanceof mysqli)
         {
-            if (!$this->lnk = @mysqli_connect($this->server, $this->user, $this->password))
+            if (!$this->lnk = @mysqli_connect($this->server, $this->user, $this->password, null, $this->port, $this->socket))
             {
                 throw new Exception(__METHOD__ . ': ' . mysqli_connect_error());
             }
@@ -661,7 +667,7 @@ class Krugozor_Database_Mysql
                             {
                                 foreach ($replacements as $key => $val)
                                 {
-                                    $values[] = ' `' . $key . '` = ' . $val;
+                                    $values[] = ' `' . $this->escapeFieldName($key) . '` = ' . $val;
                                 }
 
                                 $value = implode(',', $values);
@@ -695,7 +701,7 @@ class Krugozor_Database_Mysql
 
                                 if (!empty($is_associative_array))
                                 {
-                                    $parts[] = ' `' . $key . '` = "' . $val . '"';
+                                    $parts[] = ' `' . $this->escapeFieldName($key) . '` = "' . $val . '"';
                                 }
                                 else
                                 {
@@ -802,5 +808,16 @@ class Krugozor_Database_Mysql
         }
 
         return 'NULL';
+    }
+
+    /**
+     * Экранирует имя поля таблицы в случае использования маркеров множества.
+     *
+     * @param string $value
+     * @return string $value
+     */
+    private function escapeFieldName($value)
+    {
+    	return str_replace("`", "``", $value);
     }
 }
