@@ -1,4 +1,5 @@
 Rus
+---
 
 Класс для простой работы с СУБД MySql с использованием расширения PHP mysqli.
 
@@ -8,9 +9,10 @@ Rus
 
 Данные, прошедшие через систему placeholders, экранируются специальными функциями экранирования, в зависимости от типа заполнителей. Т.е. вам нет необходимости заключать переменные в функции экранирования типа mysqli_real_escape_string($value) или приводить их к числовому типу через (int)$value.
 
-Подробное описание см. в файле ./Mysql.php
-Тесты и различные вариации использования см. в файле ./Mysql/test.php
+Подробное описание см. в файле <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/Mysql.php">/Mysql.php</a>.
+Тесты и различные вариации использования см. в файле <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/Mysql/test.php">./Mysql/test.php</a>.
 
 Eng
+---
 
 Database - class for develop with database mysql, use adapter PHP mysqli and use placeholder, when each literal (argument) in string SQL query escaping without specific PHP function.
