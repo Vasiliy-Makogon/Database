@@ -1,5 +1,5 @@
 <?php
-/** 
+/**
  * @author Vasiliy Makogon, makogon.vs@gmail.com
  * @link http://www.phpinfo.su/
  */
