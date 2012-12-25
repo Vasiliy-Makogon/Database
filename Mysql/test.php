@@ -1,6 +1,6 @@
 <?php
-error_reporting(E_ALL|E_STRICT);
 header('Content-type: text/plain; charset=utf-8');
+error_reporting(E_ALL|E_STRICT);
 
 include('../Mysql.php');
 include('Statement.php');

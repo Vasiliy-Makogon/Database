@@ -19,7 +19,7 @@ class Krugozor_Database_Mysql_Statement
 
     /**
      * Извлекает результирующий ряд в виде ассоциативного массива.
-     * 
+     *
      * @see mysqli_fetch_assoc
      * @param void
      * @return array
@@ -29,10 +29,10 @@ class Krugozor_Database_Mysql_Statement
     {
         return mysqli_fetch_assoc($this->result);
     }
-    
+
     /**
      * Извлекает результирующий ряд в виде массива.
-     * 
+     *
      * @see mysqli_fetch_row
      * @param void
      * @return array
@@ -41,22 +41,22 @@ class Krugozor_Database_Mysql_Statement
     {
         return mysqli_fetch_row($this->result);
     }
-    
+
     /**
      * Извлекает результирующий ряд в виде объекта.
-     * 
+     *
      * @see mysqli_fetch_object
      * @param void
      * @return stdClass
      */
     public function fetch_object()
     {
-    	return mysqli_fetch_object($this->result);
+        return mysqli_fetch_object($this->result);
     }
-    
+
     /**
      * Возвращает результат SQL запроса в виде массива ассоциативных массивов.
-     * 
+     *
      * @param void
      * @return array
      */
@@ -71,10 +71,10 @@ class Krugozor_Database_Mysql_Statement
 
         return $array;
     }
-    
+
     /**
      * Возвращает результат SQL запроса в виде массива массивов.
-     * 
+     *
      * @param void
      * @return array
      */
@@ -92,7 +92,7 @@ class Krugozor_Database_Mysql_Statement
 
     /**
      * Возвращает результат SQL запроса в виде массива объектов.
-     * 
+     *
      * @param void
      * @return array
      */
@@ -107,10 +107,10 @@ class Krugozor_Database_Mysql_Statement
 
         return $array;
     }
-    
+
     /**
      * Возвращает значение первого поля результирующей таблицы.
-     * 
+     *
      * @param void
      * @return string
      */
@@ -132,10 +132,10 @@ class Krugozor_Database_Mysql_Statement
     {
         return mysqli_num_rows($this->result);
     }
-    
+
     /**
      * Возвращает объект результата mysqli_result.
-     * 
+     *
      * @param void
      * @return mysqli_result
      */
@@ -143,10 +143,10 @@ class Krugozor_Database_Mysql_Statement
     {
         return $this->result;
     }
-    
+
     /**
-     * Освобождает память занятую результатами запроса 
-     * 
+     * Освобождает память занятую результатами запроса
+     *
      * @param void
      * @return void
      */

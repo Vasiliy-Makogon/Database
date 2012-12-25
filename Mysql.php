@@ -366,9 +366,9 @@ class Krugozor_Database_Mysql
      */
     public function queryArguments($query, array $arguments=array())
     {
-    	array_unshift($arguments, $query);
+        array_unshift($arguments, $query);
 
-    	return call_user_func_array(array($this, 'query'), $arguments);
+        return call_user_func_array(array($this, 'query'), $arguments);
     }
 
     /**
@@ -444,14 +444,14 @@ class Krugozor_Database_Mysql
      */
     public function getListFields($table)
     {
-    	if (!isset(self::$list_fields[$table]))
+        if (!isset(self::$list_fields[$table]))
         {
-        	$result = $this->query('SELECT * FROM `' . $this->database_name . '`.`' . $table . '` LIMIT 1');
+            $result = $this->query('SELECT * FROM `' . $this->database_name . '`.`' . $table . '` LIMIT 1');
 
-        	$finfo = mysqli_fetch_fields($result->getResult());
+            $finfo = mysqli_fetch_fields($result->getResult());
 
-    		foreach ($finfo as $obj)
-    		{
+            foreach ($finfo as $obj)
+            {
                 self::$list_fields[$table][$obj->name] = $obj;
             }
         }
@@ -642,14 +642,14 @@ class Krugozor_Database_Mysql
                         // Парсим выражение вида ?a[?i, "?s", "?s"]
                         if ($query[$posQM+2] == '[' and ($close = strpos($query, ']', $posQM+3)) !== false)
                         {
-                        	// Выражение между скобками [ и ]
+                            // Выражение между скобками [ и ]
                             $array_parse = substr($query, $posQM+3, $close - ($posQM+3));
                             $array_parse = trim($array_parse);
                             $placeholders = array_map('trim', explode(',', $array_parse));
 
                             if (count($value) != count($placeholders))
                             {
-                            	throw new Exception('Несовпадение количества аргументов и заполнителей в массиве, запрос ' . $original_query);
+                                throw new Exception('Несовпадение количества аргументов и заполнителей в массиве, запрос ' . $original_query);
                             }
 
                             reset($value);
@@ -659,8 +659,8 @@ class Krugozor_Database_Mysql
 
                             foreach ($placeholders as $placeholder)
                             {
-                            	list($key, $val) = each($value);
-                            	$replacements[$key] = $this->parse($placeholder, array($val), $original_query);
+                                list($key, $val) = each($value);
+                                $replacements[$key] = $this->parse($placeholder, array($val), $original_query);
                             }
 
                             if (!empty($is_associative_array))
@@ -818,6 +818,6 @@ class Krugozor_Database_Mysql
      */
     private function escapeFieldName($value)
     {
-    	return str_replace("`", "``", $value);
+        return str_replace("`", "``", $value);
     }
 }
