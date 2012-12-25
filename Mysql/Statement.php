@@ -2,6 +2,8 @@
 /**
  * @author Vasiliy Makogon, makogon.vs@gmail.com
  * @link http://www.phpinfo.su/
+ *
+ * Объект результата. 
  */
 class Krugozor_Database_Mysql_Statement
 {
