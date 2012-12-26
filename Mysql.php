@@ -5,7 +5,7 @@
  *
  * Данный класс использует технологию placeholders - для формирования корректных SQL-запросов, в строке запроса вместо
  * значений пишутся специальные типизированные маркеры - заполнители, а сами данные передаются "позже", в качестве
- * последующих аргументов основного метода, выполняющего SQL-запрос - Krugozor_Database_Mysql::query():
+ * последующих аргументов основного метода, выполняющего SQL-запрос - Krugozor_Database_Mysql::query($sql [, $arg, $...]):
  *
  *     $db->query('SELECT * FROM `table` WHERE `field_1` = "?s" AND `field_2` = ?i', 'вася', 30);
  *
@@ -37,9 +37,11 @@
  *       - s (string)
  *       правила преобразования и экранирования такие же, как и для одиночных скалярных типов (см. выше).
  *
- * ?A[?n, ?s, ?i] - заполнитель ассоциативного множества с явным указанием типа и количества аргументов.
+ * ?A[?n, ?s, ?i] - заполнитель ассоциативного множества с явным указанием типа и количества аргументов,
+ *                  генерирующий последовательность пар ключ => значение ("key_1" => "val_1", "key_2" => "val_2", ...).
  *
- * ?a[?n, ?s, ?i] - заполнитель множества с явным указанием типа и количества аргументов.
+ * ?a[?n, ?s, ?i] - заполнитель множества с явным указанием типа и количества аргументов, генерирующий последовательность
+ *                  значений ("val_1", "val_2", ...).
  *
  *
  *    Режимы работы.
@@ -56,15 +58,15 @@
  * Krugozor_Database_Mysql::query(), должны в ТОЧНОСТИ соответствовать типу заполнителя.
  * Разберем примеры:
  *
- * $db->query('SELECT * FROM table WHERE field = ?i', 'вася'); - в данном случае будет выброшено исключение
+ * $db->query('SELECT * FROM `table` WHERE `field` = ?i', 'вася'); - в данном случае будет выброшено исключение
  *     "Попытка записать как int значение вася типа string в запросе ...", т.к.
  * указан тип заполнителя ?i (int - целое число), а в качестве аргумента передается строка 'вася'.
  *
- * $db->query('SELECT * FROM table WHERE field = "?s"', 123); - будет выброшено исключение
+ * $db->query('SELECT * FROM `table` WHERE `field` = "?s"', 123); - будет выброшено исключение
  *     "Попытка записать как string значение 123 типа integer в запросе ...", т.к.
  * указан тип заполнителя ?s (string - строка), а в качестве аргумента передается число 123.
  *
- * $db->query('SELECT * FROM table WHERE field IN (?as)', array(null, 123, true, 'string')); - будет выброшено исключение
+ * $db->query('SELECT * FROM `table` WHERE `field` IN (?as)', array(null, 123, true, 'string')); - будет выброшено исключение
  *     "Попытка записать как string значение типа NULL в запросе ...", т.к. заполнитель множества ?as ожидает,
  * что все элементы массива-аргумета будут типа s (string - строка), но на деле все элементы массива представляют собой
  * данные различных типов. Парсер прекратил разбор на первом несоответствии типа заполнителя и типа аргумента - на
@@ -79,33 +81,33 @@
  * Допускаются следующие преобразования:
  *
  * К строковому типу приводятся данные типа boolean, numeric, NULL:
- *     - значение boolean TRUE преобразуется в строку "1", а значение FALSE преобразуется в "" (пустую строку)
- *     - значение типа numeric преобразуется в строку согласно правилам преобразования, определенным языком
- *     - NULL преобразуется в пустую строку
+ *     - значение boolean TRUE преобразуется в строку "1", а значение FALSE преобразуется в "" (пустую строку).
+ *     - значение типа numeric преобразуется в строку согласно правилам преобразования, определенным языком.
+ *     - NULL преобразуется в пустую строку.
  * Для массивов, объектов и ресурсов преобразования не допускаются.
  *
  * Пример выражения:
- *     $db->query('SELECT * FROM table WHERE f1 = "?s", f2 = "?s", f3 = "?s"', null, 123, true);
+ *     $db->query('SELECT * FROM `table` WHERE f1 = "?s", f2 = "?s", f3 = "?s"', null, 123, true);
  * Результат преобразования:
- *     SELECT * FROM table WHERE f1 = "", f2 = "123", f3 = "1"
+ *     SELECT * FROM `table` WHERE f1 = "", f2 = "123", f3 = "1"
  *
  * К целочисленному типу приводятся данные типа boolean, string, NULL:
  *     - значение boolean FALSE преобразуется в 0 (ноль), а TRUE - в 1 (единицу).
- *     - значение типа string преобразуется согласно правилам преобразования, определенным языком
- *     - NULL преобразуется в 0
+ *     - значение типа string преобразуется согласно правилам преобразования, определенным языком.
+ *     - NULL преобразуется в 0.
  * Для массивов, объектов и ресурсов преобразования не допускаются.
  *
  * Пример выражения:
- *     $db->query('SELECT * FROM table WHERE f1 = ?i, f2 = ?i, f3 = ?i, f4 = ?i', null, '123abc', 'abc', true);
+ *     $db->query('SELECT * FROM `table` WHERE f1 = ?i, f2 = ?i, f3 = ?i, f4 = ?i', null, '123abc', 'abc', true);
  * Результат преобразования:
- *     SELECT * FROM table WHERE f1 = 0, f2 = 123, f3 = 0, f4 = 1
+ *     SELECT * FROM `table` WHERE f1 = 0, f2 = 123, f3 = 0, f4 = 1
  *
  * NULL тип замещает аргумент для любого типа данных.
  *
  *
  *    Ограничивающие кавчки
  *
- * Данный класс при формировании SQL-запроса не занимается проставлением ограничивающих кавычек для одиночных
+ * Данный класс при формировании SQL-запроса НЕ занимается проставлением ограничивающих кавычек для одиночных
  * заполнителей скалярного типа, таких как ?i и ?s. Это сделано по идеологическим соображениям, автоподстановка кавычек
  * может стать ограничением для возможностей SQL.
  * Например, выражение
@@ -136,8 +138,7 @@ class Krugozor_Database_Mysql
      * $db->query('SELECT * FROM `table` WHERE `id` = ?i', '2+мусор');
      *
      * - в данной ситуации тип заполнителя ?i - число или числовая строка,
-     *   а в качестве аргумента передаётся строка '2+мусор' не являющаяся ни числом,
-     *   ни числовой строкой.
+     *   а в качестве аргумента передаётся строка '2+мусор' не являющаяся ни числом, ни числовой строкой.
      *
      * @var int
      */
@@ -152,8 +153,7 @@ class Krugozor_Database_Mysql
      * $db->query('SELECT * FROM `table` WHERE `id` = ?i', '2+мусор');
      *
      * - в данной ситуации тип заполнителя ?i - число или числовая строка,
-     *   а в качестве аргумента передаётся строка '2+мусор' не являющаяся ни числом,
-     *   ни числовой строкой.
+     *   а в качестве аргумента передаётся строка '2+мусор' не являющаяся ни числом, ни числовой строкой.
      *   Строка '2+мусор' будет принудительно приведена к типу int - к числу 2.
      *
      * @var int
@@ -161,8 +161,7 @@ class Krugozor_Database_Mysql
     const MODE_TRANSFORM = 2;
 
     /**
-     * Режим работы при случаях, когда тип заполнителя не соответствует типу аргумента.
-     * См. описание констант self::MODE_STRICT и self::MODE_TRANSFORM.
+     * Режим работы. См. описание констант self::MODE_STRICT и self::MODE_TRANSFORM.
      *
      * @var int
      */
@@ -183,14 +182,14 @@ class Krugozor_Database_Mysql
      *
      * @var string
      */
-    private $database_name;
+    protected $database_name;
 
     /**
      * Объект соединения с БД.
      *
      * @var mysqli
      */
-    private $lnk;
+    protected $lnk;
 
     /**
      * Строка последнего SQL-запроса до преобразования.
@@ -200,7 +199,7 @@ class Krugozor_Database_Mysql
     private $original_query;
 
     /**
-     * Строка последнего SQL-запроса.
+     * Строка последнего SQL-запроса после преобразования.
      *
      * @var string
      */
@@ -231,6 +230,8 @@ class Krugozor_Database_Mysql
      * @param string $server имя сервера
      * @param string $username имя пользователя
      * @param string $password пароль
+     * @param string $port порт
+     * @param string $socket сокет
      */
     public static function create($server, $username, $password, $port=null, $socket=null)
     {
@@ -270,11 +271,6 @@ class Krugozor_Database_Mysql
      */
     public function setDatabaseName($database_name)
     {
-        if (!is_object($this->lnk))
-        {
-            $this->connect();
-        }
-
         if (!$database_name)
         {
             throw new Exception(__METHOD__ . ': Не указано имя базы данных');
@@ -309,6 +305,11 @@ class Krugozor_Database_Mysql
      */
     public function setTypeMode($value)
     {
+    	if (!in_array($value, array(self::MODE_STRICT, self::MODE_TRANSFORM)))
+    	{
+    		throw new Exception('Указан неизвестный тип режима');
+    	}
+
         $this->type_mode = $value;
 
         return $this;
@@ -325,8 +326,6 @@ class Krugozor_Database_Mysql
      */
     public function query()
     {
-        $this->connect();
-
         if (!func_num_args())
         {
             return false;
@@ -357,7 +356,7 @@ class Krugozor_Database_Mysql
 
     /**
      * Поведение аналогично методу self::query(), только метод принимает только два параметра -
-     * SQL запрос $query и массив аргументов $arguments, которые и будут заменны на заменители в той
+     * SQL запрос $query и массив аргументов $arguments, которые и будут заменены на заменители в той
      * последовательности, в которой они представленны в массиве $arguments.
      *
      * @param string
@@ -374,11 +373,11 @@ class Krugozor_Database_Mysql
     /**
      * Получает количество рядов,
      * задействованных в предыдущей MySQL-операции.
-     * Возвращает количество рядов,
-     * задействованных в последнем запросе INSERT, UPDATE или DELETE.
+     * Возвращает количество рядов, задействованных в последнем запросе INSERT, UPDATE или DELETE.
      * Если последним запросом был DELETE без оператора WHERE,
      * все записи таблицы будут удалены, но функция возвратит ноль.
      *
+     * @see mysqli_affected_rows
      * @param void
      * @return int
      */
@@ -463,6 +462,8 @@ class Krugozor_Database_Mysql
      * @param string $server
      * @param string $username
      * @param string $password
+     * @param string $port
+     * @param string $socket
      * @return void
      */
     private function __construct($server, $user, $password, $port, $socket)
@@ -472,6 +473,8 @@ class Krugozor_Database_Mysql
         $this->password = $password;
         $this->port = $port;
         $this->socket = $socket;
+
+        $this->connect();
     }
 
     /**
@@ -509,7 +512,6 @@ class Krugozor_Database_Mysql
 
     /**
      * Возвращает экранированную строку для placeholder-а поиска LIKE.
-     * Описание замены переменых для LIKE-поиска см. http://phpfaq.ru/slashes#prepared
      *
      * @param string $var строка в которой необходимо экранировать спец. символы
      * @param string $chars набор символов, которые так же необходимо экранировать.
@@ -518,7 +520,7 @@ class Krugozor_Database_Mysql
      */
     private function escape_like($var, $chars = "%_")
     {
-        $var = str_replace('\\','\\\\',$var);
+        $var = str_replace('\\', '\\\\', $var);
         $var = $this->mysqlRealEscapeString($var);
 
         if ($chars)
@@ -578,7 +580,8 @@ class Krugozor_Database_Mysql
 
             if (!$args)
             {
-                throw new Exception(__METHOD__ . ': количество заполнителей в запросе ' . $original_query . ' не соответствует переданному количеству аргументов');
+                throw new Exception(__METHOD__ . ': количество заполнителей в запросе ' . $original_query .
+                                    ' не соответствует переданному количеству аргументов');
             }
 
             $value = array_shift($args);
@@ -625,17 +628,7 @@ class Krugozor_Database_Mysql
 
                 // Simple array
                 case 'a':
-                    if (!is_array($value))
-                    {
-                        if ($this->type_mode == self::MODE_STRICT)
-                        {
-                            throw new Exception($this->createErrorMessage('array', $value, $original_query));
-                        }
-                        else
-                        {
-                            $value = (array)$value;
-                        }
-                    }
+                    $value = $this->getValueArrayType($value, $original_query);
 
                     if (isset($query[$posQM+2]) && preg_match('#[si\[]#', $query[$posQM+2], $matches))
                     {
@@ -731,6 +724,7 @@ class Krugozor_Database_Mysql
      *
      * @param mixed $value
      * @param string $original_query оригинальный SQL запрос
+     * @throws Exception
      * @return string
      */
     private function getValueStringType($value, $original_query)
@@ -763,6 +757,7 @@ class Krugozor_Database_Mysql
      *
      * @param mixed $value
      * @param string $original_query оригинальный SQL запрос
+     * @throws Exception
      * @return string
      */
     private function getValueIntType($value, $original_query)
@@ -795,6 +790,7 @@ class Krugozor_Database_Mysql
      *
      * @param mixed $value
      * @param string $original_query оригинальный SQL запрос
+     * @throws Exception
      * @return string
      */
     private function getValueNullType($value, $original_query)
@@ -808,6 +804,27 @@ class Krugozor_Database_Mysql
         }
 
         return 'NULL';
+    }
+
+    /**
+     * Всегда генерирует исключение, если $value не является массивом.
+     * Первоначально была идея в режиме self::MODE_TRANSFORM приводить к типу array
+     * скалярные данные, но на данный момент я считаю это излишним послаблением для клиентов,
+     * которые будут использовать данный класс.
+     *
+     * @param mixed $value
+     * @param string $original_query
+     * @throws Exception
+     * @return array
+     */
+    private function getValueArrayType($value, $original_query)
+    {
+        if (!is_array($value))
+        {
+            throw new Exception($this->createErrorMessage('array', $value, $original_query));
+        }
+
+        return $value;
     }
 
     /**

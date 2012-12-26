@@ -2,6 +2,8 @@
 /**
  * @author Vasiliy Makogon, makogon.vs@gmail.com
  * @link http://www.phpinfo.su/
+ *
+ * Обёртка над объектом mysqli_result.
  */
 class Krugozor_Database_Mysql_Statement
 {
@@ -55,7 +57,7 @@ class Krugozor_Database_Mysql_Statement
     }
 
     /**
-     * Возвращает результат SQL запроса в виде массива ассоциативных массивов.
+     * Возвращает результат SQL запроса в виде двухмерного массива ассоциативных массивов.
      *
      * @param void
      * @return array
@@ -73,7 +75,7 @@ class Krugozor_Database_Mysql_Statement
     }
 
     /**
-     * Возвращает результат SQL запроса в виде массива массивов.
+     * Возвращает результат SQL запроса в виде двухмерного массива массивов.
      *
      * @param void
      * @return array
