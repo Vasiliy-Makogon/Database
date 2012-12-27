@@ -1,6 +1,5 @@
 <?php
 header('Content-type: text/plain; charset=utf-8');
-//header('Content-type: text/plain; charset=windows-1251');
 
 error_reporting(E_ALL|E_STRICT);
 
@@ -22,9 +21,6 @@ try
     adress varchar(255)
     )');
 
-    // Работа в режиме Krugozor_Database_Mysql::MODE_STRICT
-    $db->setTypeMode(Krugozor_Database_Mysql::MODE_STRICT);
-
     $db->query('INSERT INTO `test` VALUES (?n, "?s", "?s", "?s")', null, 'Иван', '25', 'Москва, ул. Ленина, ЗАО "Рога и копыта"');
     getAffectedInfo($db);
 
@@ -43,28 +39,17 @@ try
     // LIKE-поиск записи, содержащей в поле `name` служебный символ % (процент)
     $result = $db->query('SELECT * FROM `test` WHERE `name` LIKE "%?S%"', '%');
     getSelectInfo($db, $result);
-    print_r($result->fetch_assoc());
-    echo "\n\n";
 
-    $result = $db->query('SELECT * FROM `test` WHERE `id` = ?s', '1');
+    $result = $db->query('SELECT * FROM `test` WHERE `id` = ?i', 1);
     getSelectInfo($db, $result);
-    print_r($result->fetch_object());
-    echo "\n\n";
-
-    // Работа в режиме Krugozor_Database_Mysql::MODE_TRANSFORM
-    $db->setTypeMode(Krugozor_Database_Mysql::MODE_TRANSFORM);
 
     // Выбор записи по маркеру числа - ?i, но с указанием не числовой строки '2+мусор'.
     $result = $db->query('SELECT * FROM `test` WHERE `id` = ?i', '2+мусор');
     getSelectInfo($db, $result);
-    print_r($result->fetch_object());
-    echo "\n\n";
 
     // Передать массив и получить результат на основе выборки.
     $result = $db->query('SELECT * FROM `test` WHERE `name` IN (?a["?s", "?s", "?s"])', array('Катя', 'Иван', 'Роман'));
     getSelectInfo($db, $result);
-    print_r($result->fetch_assoc_array());
-    echo "\n\n";
 
     // Тоже самое, но типизировать и перечислять в заменителях точное количество аргументов не нужно.
     // Значения аргументов будут заключены в "двойные" кавчки.
@@ -73,8 +58,6 @@ try
                          array('Иван', 'Фёдор', 'Катя')
                         );
     getSelectInfo($db, $result);
-    print_r($result->fetch_assoc_array());
-    echo "\n\n";
 
     // Записать NULL в качестве значений
     $db->query('INSERT INTO `test` VALUES (?n, ?n, ?n, ?n)', NULL, NULL, NULL, NULL);
