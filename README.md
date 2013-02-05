@@ -1,3 +1,14 @@
+Eng
+---
+
+Database - class for develop with database mysql, use adapter PHP mysqli and use placeholder, when each literal (argument) in string SQL query escaping without specific PHP function.
+
+<code>
+```sql
+$db->query('SELECT * FROM `table` WHERE `field_1` = "?s" AND `field_2` = ?i', 'вася', 30);
+```
+</code>
+
 Rus
 ---
 
@@ -14,8 +25,3 @@ $db->query('SELECT * FROM `table` WHERE `field_1` = "?s" AND `field_2` = ?i', '�
 
 Подробное описание см. в файле <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/Mysql.php">/Mysql.php</a>.
 Тесты и различные вариации использования см. в файле <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/Mysql/test.php">./Mysql/test.php</a>.
-
-Eng
----
-
-Database - class for develop with database mysql, use adapter PHP mysqli and use placeholder, when each literal (argument) in string SQL query escaping without specific PHP function.
