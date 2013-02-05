@@ -5,7 +5,7 @@ Database - class for develop with database mysql, use adapter PHP mysqli and use
 
 <code>
 ```sql
-$db->query('SELECT * FROM `table` WHERE `field_1` = "?s" AND `field_2` = ?i', 'вася', 30);
+$db->query('SELECT * FROM `table` WHERE `field_1` = "?s" AND `field_2` = ?i', 'Basiel', 30);
 ```
 </code>
 
