@@ -18,4 +18,13 @@ $db->query('SELECT * FROM `table` WHERE `field_1` = "?s" AND `field_2` = ?i', 'Ð
 Eng
 ---
 
-Database - class for develop with database mysql, use adapter PHP mysqli and use placeholder, when each literal (argument) in string SQL query escaping without specific PHP function.
+Database - class for develop with database mysql, use adapter PHP mysqli and use placeholder, when each literal (argument) in string SQL query escaping without specific PHP functions like a mysqli_real_escape_string(). 
+<code>
+```sql
+$db->query('SELECT * FROM `table` WHERE `field_1` = "?s" AND `field_2` = ?i', 'Basiel', 30);
+```
+</code>
+
+The data passed through the placeholders, screened by special screening function, depending on the type of filler. Ie you do not need to enter variables in the screening function type mysqli_real_escape_string ($ value) or bring them to a numeric type (int) $ value.
+
+Details, see the file <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/Mysql.php">/Mysql.php</a>. Tests and the use of different variations, see the file <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/Mysql/test.php">./Mysql/test.php</a>.
