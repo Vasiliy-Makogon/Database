@@ -1,5 +1,6 @@
 <?php
-header('Content-type: text/plain; charset=utf-8');
+//header('Content-type: text/plain; charset=utf-8');
+header('Content-type: text/plain; charset=windows-1251');
 
 error_reporting(E_ALL|E_STRICT);
 
@@ -9,7 +10,7 @@ include('Statement.php');
 try
 {
     $db = Krugozor_Database_Mysql::create('localhost', 'root', '')
-          ->setCharset('utf8')
+          ->setCharset('cp1251')
           ->setDatabaseName('test');
 
     $db->query('DROP TABLE IF EXISTS `test`');
