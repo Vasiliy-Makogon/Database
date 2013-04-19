@@ -16,6 +16,8 @@
  *
  *    Типы заполнителей
  *
+ * ?f - заполнитель имени таблицы или поля.
+ *
  * ?i - заполнитель числового типа.
  *      В режиме MODE_TRANSFORM любые скалярные данные принудительно приводятся к типу integer
  *      согласно правилам преобразования к типу integer в PHP.
@@ -592,7 +594,7 @@ class Krugozor_Database_Mysql
             else
             {
             	// Если найден просто знак ?, парсим строку дальше.
-            	if (!in_array($query[$posQM + 1], array('i', 's', 'S', 'n', 'A', 'a')))
+            	if (!in_array($query[$posQM + 1], array('i', 's', 'S', 'n', 'A', 'a', 'f')))
             	{
             		$offset += 1;
             		continue;
@@ -637,6 +639,13 @@ class Krugozor_Database_Mysql
                 // NULL insert
                 case 'n':
                     $value = $this->getValueNullType($value, $original_query);
+                    $query = substr_replace($query, $value, $posQM, 2);
+                    $offset += strlen($value);
+                    break;
+
+                // field or table name
+                case 'f':
+                    $value = '`' . $this->escapeFieldName($value) . '`';
                     $query = substr_replace($query, $value, $posQM, 2);
                     $offset += strlen($value);
                     break;

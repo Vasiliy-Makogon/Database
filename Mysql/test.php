@@ -1,6 +1,6 @@
 <?php
-//header('Content-type: text/plain; charset=utf-8');
-header('Content-type: text/plain; charset=windows-1251');
+header('Content-type: text/plain; charset=utf-8');
+//header('Content-type: text/plain; charset=windows-1251');
 
 error_reporting(E_ALL|E_STRICT);
 
@@ -13,7 +13,8 @@ try
           ->setCharset('cp1251')
           ->setDatabaseName('test');
 
-    $db->query('DROP TABLE IF EXISTS `test`');
+    $db->query('DROP TABLE IF EXISTS ?f', 'test');
+    echo $db->getQueryString() . "\n\n";
 
     $db->query('CREATE TABLE test(
     id int unsigned not null primary key auto_increment,
