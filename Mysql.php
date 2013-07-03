@@ -234,17 +234,6 @@ class Krugozor_Database_Mysql
     private static $queries = array();
 
     /**
-     * Массив имен полей запрошенной таблицы.
-     * Это свойство для дополнительного функционала, см. метод $this->getListFields().
-     * Вы можете в случае отсутствия необходимости удалить это свойство и метод $this->getListFields()
-     * т.к. в данном классе они присутствуют исключительно по историческим причинам и вопросам совместимости с моим
-     * старым кодом. Хотя, безусловно, это полезный метод и вполне возможно, рано или поздно он вам пригодится.
-     *
-     * @var array
-     */
-    private static $list_fields = array();
-
-    /**
      * Создает инстанс данного класса.
      *
      * @param string $server имя сервера
@@ -477,29 +466,6 @@ class Krugozor_Database_Mysql
     public function __destruct()
     {
         $this->close();
-    }
-
-    /**
-     * Возвращает массив объектов stdClass, содержащих свойства таблицы $table.
-     *
-     * @param string имя таблицы
-     * @return array
-     */
-    public function getListFields($table)
-    {
-        if (!isset(self::$list_fields[$table]))
-        {
-            $result = $this->query('SELECT * FROM `' . $this->database_name . '`.`' . $table . '` LIMIT 1');
-
-            $finfo = mysqli_fetch_fields($result->getResult());
-
-            foreach ($finfo as $obj)
-            {
-                self::$list_fields[$table][$obj->name] = $obj;
-            }
-        }
-
-        return self::$list_fields[$table];
     }
 
     /**
