@@ -1,6 +1,6 @@
 <?php
 /**
- * @author Vasiliy Makogon, makogon.vs@gmail.com
+ * @author Vasiliy Makogon, makogon.vs@gmail.com, makogon-vs@yandex.ru
  * @link http://www.phpinfo.su/
  *
  * Данный класс использует технологию placeholders - для формирования корректных SQL-запросов, в строке запроса вместо
