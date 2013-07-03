@@ -1,6 +1,6 @@
 <?php
 /**
- * @author Vasiliy Makogon, makogon.vs@gmail.com, makogon-vs@yandex.ru
+ * @author Vasiliy Makogon, makogon.vs@gmail.com
  * @link http://www.phpinfo.su/
  *
  * Данный класс использует технологию placeholders - для формирования корректных SQL-запросов, в строке запроса вместо
@@ -141,6 +141,12 @@
  *
  *    $db->query('SELECT * FROM table WHERE field IN (?as)', array('55', '12', '132'));
  *    -> SELECT * FROM table WHERE field IN ("55", "12", "132")
+ *
+ * Также исключения составляют заполнители типа ?f, предназначенные для передачи в запрос имен таблиц и полей.
+ * Аргумент заполнителя ?f всегда обрамляется обратными кавычками (`):
+ *
+ *    $db->query('SELECT ?f FROM ?f', 'my_field', 'my_table');
+ *    -> SELECT `my_field` FROM `my_table`
  */
 class Krugozor_Database_Mysql
 {
@@ -385,6 +391,30 @@ class Krugozor_Database_Mysql
     }
 
     /**
+     * Обёртка над методом $this->parse().
+     * Применяется для случаев, когда SQL-запрос формируется частями и часть запроса содержит заполнитель и аргумент.
+     * Пример:
+     * echo $db->prepare('?s ?ai', '"текст"', array(1, 2));
+     * > \"текст\" "1", "2"
+     *
+     * @param string SQL-запрос или его часть
+     * @param mixed аргументы заполнителей
+     * @return boolean|string
+     */
+    public function prepare()
+    {
+        if (!func_num_args())
+        {
+        	return false;
+        }
+
+        $args = func_get_args();
+        $query = array_shift($args);
+
+        return $this->parse($query, $args);
+    }
+
+    /**
      * Получает количество рядов,
      * задействованных в предыдущей MySQL-операции.
      * Возвращает количество рядов, задействованных в последнем запросе INSERT, UPDATE или DELETE.
@@ -572,10 +602,10 @@ class Krugozor_Database_Mysql
     /**
      * Парсит запрос $query и подставляет в него аргументы из $args.
      *
-     * @param string $query
-     * @param array $args
-     * @param string $original_query
-     * @return string
+     * @param string $query SQL запрос или его часть (в случае парсинга условия в скобках [])
+     * @param array $args аргументы заполнителей
+     * @param string $original_query "оригинальный", полный SQL-запрос
+     * @return string SQL запрос для исполнения
      */
     private function parse($query, array $args, $original_query=null)
     {

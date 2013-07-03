@@ -1,6 +1,6 @@
 <?php
 /**
- * @author Vasiliy Makogon, makogon.vs@gmail.com, makogon-vs@yandex.ru
+ * @author Vasiliy Makogon, makogon.vs@gmail.com
  * @link http://www.phpinfo.su/
  *
  * Обёртка над объектом mysqli_result.
