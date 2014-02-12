@@ -3,24 +3,24 @@
  * @author Vasiliy Makogon, makogon.vs@gmail.com
  * @link http://www.phpinfo.su/
  *
- * ÐžÐ±Ñ‘Ñ€Ñ‚ÐºÐ° Ð½Ð°Ð´ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð¼ mysqli_result.
+ * Îá¸ðòêà íàä îáúåêòîì mysqli_result.
  */
 class Krugozor_Database_Mysql_Statement
 {
     /**
-     * Ð ÑƒÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚ SQL-Ð¾Ð¿ÐµÑ€Ð°Ñ†Ð¸Ð¸ Ð² Ð²Ð¸Ð´Ðµ Ð¾Ð±ÑŠÐµÐºÑ‚Ð° mysqli_result.
+     * Ðóçóëüòàò SQL-îïåðàöèè â âèäå îáúåêòà mysqli_result.
      *
      * @var mysqli_result
      */
-    private $result;
+    private $mysqli_result = null;
 
-    public function __construct(mysqli_result $result)
+    public function __construct(mysqli_result $mysqli_result)
     {
-        $this->result = $result;
+        $this->mysqli_result = $mysqli_result;
     }
 
     /**
-     * Ð˜Ð·Ð²Ð»ÐµÐºÐ°ÐµÑ‚ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð¸Ñ€ÑƒÑŽÑ‰Ð¸Ð¹ Ñ€ÑÐ´ Ð² Ð²Ð¸Ð´Ðµ Ð°ÑÑÐ¾Ñ†Ð¸Ð°Ñ‚Ð¸Ð²Ð½Ð¾Ð³Ð¾ Ð¼Ð°ÑÑÐ¸Ð²Ð°.
+     * Èçâëåêàåò ðåçóëüòèðóþùèé ðÿä â âèäå àññîöèàòèâíîãî ìàññèâà.
      *
      * @see mysqli_fetch_assoc
      * @param void
@@ -29,11 +29,11 @@ class Krugozor_Database_Mysql_Statement
 
     public function fetch_assoc()
     {
-        return mysqli_fetch_assoc($this->result);
+        return mysqli_fetch_assoc($this->mysqli_result);
     }
 
     /**
-     * Ð˜Ð·Ð²Ð»ÐµÐºÐ°ÐµÑ‚ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð¸Ñ€ÑƒÑŽÑ‰Ð¸Ð¹ Ñ€ÑÐ´ Ð² Ð²Ð¸Ð´Ðµ Ð¼Ð°ÑÑÐ¸Ð²Ð°.
+     * Èçâëåêàåò ðåçóëüòèðóþùèé ðÿä â âèäå ìàññèâà.
      *
      * @see mysqli_fetch_row
      * @param void
@@ -41,11 +41,11 @@ class Krugozor_Database_Mysql_Statement
      */
     public function fetch_row()
     {
-        return mysqli_fetch_row($this->result);
+        return mysqli_fetch_row($this->mysqli_result);
     }
 
     /**
-     * Ð˜Ð·Ð²Ð»ÐµÐºÐ°ÐµÑ‚ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð¸Ñ€ÑƒÑŽÑ‰Ð¸Ð¹ Ñ€ÑÐ´ Ð² Ð²Ð¸Ð´Ðµ Ð¾Ð±ÑŠÐµÐºÑ‚Ð°.
+     * Èçâëåêàåò ðåçóëüòèðóþùèé ðÿä â âèäå îáúåêòà.
      *
      * @see mysqli_fetch_object
      * @param void
@@ -53,11 +53,11 @@ class Krugozor_Database_Mysql_Statement
      */
     public function fetch_object()
     {
-        return mysqli_fetch_object($this->result);
+        return mysqli_fetch_object($this->mysqli_result);
     }
 
     /**
-     * Ð’Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚ Ð² Ð²Ð¸Ð´Ðµ Ð´Ð²ÑƒÑ…Ð¼ÐµÑ€Ð½Ð¾Ð³Ð¾ Ð¼Ð°ÑÑÐ¸Ð²Ð° Ð°ÑÑÐ¾Ñ†Ð¸Ð°Ñ‚Ð¸Ð²Ð½Ñ‹Ñ… Ð¼Ð°ÑÑÐ¸Ð²Ð¾Ð².
+     * Âîçâðàùàåò ðåçóëüòàò â âèäå äâóõìåðíîãî ìàññèâà àññîöèàòèâíûõ ìàññèâîâ.
      *
      * @param void
      * @return array
@@ -66,7 +66,7 @@ class Krugozor_Database_Mysql_Statement
     {
         $array = array();
 
-        while($row = mysqli_fetch_assoc($this->result))
+        while($row = mysqli_fetch_assoc($this->mysqli_result))
         {
             $array[] = $row;
         }
@@ -75,7 +75,7 @@ class Krugozor_Database_Mysql_Statement
     }
 
     /**
-     * Ð’Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚ Ð² Ð²Ð¸Ð´Ðµ Ð´Ð²ÑƒÑ…Ð¼ÐµÑ€Ð½Ð¾Ð³Ð¾ Ð¼Ð°ÑÑÐ¸Ð²Ð° Ð¼Ð°ÑÑÐ¸Ð²Ð¾Ð².
+     * Âîçâðàùàåò ðåçóëüòàò â âèäå äâóõìåðíîãî ìàññèâà ìàññèâîâ.
      *
      * @param void
      * @return array
@@ -84,7 +84,7 @@ class Krugozor_Database_Mysql_Statement
     {
         $array = array();
 
-        while($row = mysqli_fetch_row($this->result))
+        while($row = mysqli_fetch_row($this->mysqli_result))
         {
             $array[] = $row;
         }
@@ -93,7 +93,7 @@ class Krugozor_Database_Mysql_Statement
     }
 
     /**
-     * Ð’Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚ Ð² Ð²Ð¸Ð´Ðµ Ð¼Ð°ÑÑÐ¸Ð²Ð° Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð².
+     * Âîçâðàùàåò ðåçóëüòàò â âèäå ìàññèâà îáúåêòîâ.
      *
      * @param void
      * @return array
@@ -102,7 +102,7 @@ class Krugozor_Database_Mysql_Statement
     {
         $array = array();
 
-        while($row = mysqli_fetch_object($this->result))
+        while($row = mysqli_fetch_object($this->mysqli_result))
         {
             $array[] = $row;
         }
@@ -111,50 +111,50 @@ class Krugozor_Database_Mysql_Statement
     }
 
     /**
-     * Ð’Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚ Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ Ð¿ÐµÑ€Ð²Ð¾Ð³Ð¾ Ð¿Ð¾Ð»Ñ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð¸Ñ€ÑƒÑŽÑ‰ÐµÐ¹ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹.
+     * Âîçâðàùàåò çíà÷åíèå ïåðâîãî ïîëÿ ðåçóëüòèðóþùåé òàáëèöû.
      *
      * @param void
      * @return string
      */
     public function getOne()
     {
-        $row = mysqli_fetch_row($this->result);
+        $row = mysqli_fetch_row($this->mysqli_result);
 
         return $row[0];
     }
 
     /**
-     * Ð’Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚ ÐºÐ¾Ð»Ð¸Ñ‡ÐµÑÑ‚Ð²Ð¾ Ñ€ÑÐ´Ð¾Ð² Ð² Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ðµ.
-     * Ð­Ñ‚Ð° ÐºÐ¾Ð¼Ð°Ð½Ð´Ð° Ð²ÐµÑ€Ð½Ð° Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Ð´Ð»Ñ Ð¾Ð¿ÐµÑ€Ð°Ñ‚Ð¾Ñ€Ð¾Ð² SELECT.
+     * Âîçâðàùàåò êîëè÷åñòâî ðÿäîâ â ðåçóëüòàòå.
+     * Ýòà êîìàíäà âåðíà òîëüêî äëÿ îïåðàòîðîâ SELECT.
      *
      * @param void
      * @return int
      */
     public function getNumRows()
     {
-        return mysqli_num_rows($this->result);
+        return mysqli_num_rows($this->mysqli_result);
     }
 
     /**
-     * Ð’Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚ Ð¾Ð±ÑŠÐµÐºÑ‚ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ð° mysqli_result.
+     * Âîçâðàùàåò îáúåêò ðåçóëüòàòà mysqli_result.
      *
      * @param void
      * @return mysqli_result
      */
     public function getResult()
     {
-        return $this->result;
+        return $this->mysqli_result;
     }
 
     /**
-     * ÐžÑÐ²Ð¾Ð±Ð¾Ð¶Ð´Ð°ÐµÑ‚ Ð¿Ð°Ð¼ÑÑ‚ÑŒ Ð·Ð°Ð½ÑÑ‚ÑƒÑŽ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ð°Ð¼Ð¸ Ð·Ð°Ð¿Ñ€Ð¾ÑÐ°.
+     * Îñâîáîæäàåò ïàìÿòü çàíÿòóþ ðåçóëüòàòàìè çàïðîñà.
      *
      * @param void
      * @return void
      */
     public function free()
     {
-        mysqli_free_result($this->result);
+        mysqli_free_result($this->mysqli_result);
     }
 
     public function __destruct()
