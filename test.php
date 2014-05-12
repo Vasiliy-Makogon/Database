@@ -5,7 +5,7 @@ header('Content-type: text/plain; charset=windows-1251');
 error_reporting(E_ALL|E_STRICT);
 
 include('./Mysql.php');
-include('./Mysql/Exception.php'); 
+include('./Mysql/Exception.php');
 include('./Mysql/Statement.php');
 
 try
