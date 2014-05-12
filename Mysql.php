@@ -227,7 +227,7 @@ class Krugozor_Database_Mysql
     protected $database_name;
 
     /**
-     * Объект соединения с БД.
+     * Стандартный объект соединения сервером MySQL.
      *
      * @var mysqli
      */
@@ -589,7 +589,7 @@ class Krugozor_Database_Mysql
      */
     private function createErrorMessage($type, $value, $original_query)
     {
-        return __CLASS__ . ': Попытка записать как ' . $type . ' значение ' . print_r($value, true) . ' типа ' .
+        return __CLASS__ . ': Попытка записать как ' . $type . ' значение "' . print_r($value, true) . '" типа ' .
                gettype($value) . ' в запросе ' . $original_query;
     }
 

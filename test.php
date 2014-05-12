@@ -1,8 +1,6 @@
 <?php
-//header('Content-type: text/plain; charset=utf-8');
-header('Content-type: text/plain; charset=windows-1251');
-
 error_reporting(E_ALL|E_STRICT);
+header('Content-type: text/plain; charset=windows-1251');
 
 include('./Mysql.php');
 include('./Mysql/Exception.php');
@@ -24,24 +22,29 @@ try
     adress varchar(255)
     )');
 
-    $db->query('INSERT INTO `test` VALUES (?n, "?s", "?s", "?s")', null, 'Иван', '25', 'Москва, ул. Ленина, ЗАО "Рога и копыта"');
+    // Ради интереса раскоментируйте строку ниже и посмотрите на поведение режима MODE_STRICT на разных запросах
+    // $db->setTypeMode(Krugozor_Database_Mysql::MODE_STRICT);
+
+
+    echo("\n\nРазличные варианты INSERT:\n\n");
+
+    $db->query('INSERT INTO `test` VALUES (?n, "?s", "?i", "?s")', null, 'Иван', '25', 'Клин, ЗАО "Рога и копыта"');
     getAffectedInfo($db);
 
-    $user = array('name' => 'Василий', 'age' => '30', 'adress' => 'Москва, ул. Деловая, 20');
+    $user = array('name' => 'Василий', 'age' => '30', 'adress' => "Москва, ООО 'М.Видео'");
     $db->query('INSERT INTO `test` SET ?As', $user);
     getAffectedInfo($db);
 
-    $user = array('id' => null, 'name' => 'Пётр', 'age' => '19', 'adress' => 'Москва, ул. Красносельская, 2А');
+    $user = array('id' => null, 'name' => 'Пётр', 'age' => '19', 'adress' => 'Москва, ул. Красносельская, 40\12');
     $db->query('INSERT INTO `test` SET ?A[?n, "?s", "?s", "?s"]', $user);
     getAffectedInfo($db);
 
-    $user = array('id' => null, 'name' => '%Настя%', 'age' => '17', 'adress' => 'Москва, ул. Радиальная, 12');
-    $db->query('INSERT INTO `test` VALUES (?a[?n, "?s", "?s", "?s"])', $user);
+    $user = array('id' => null, 'name' => 'Анна_Каренина', 'age' => '23 года', 'adress' => 'Москва, ул. Радиальная, 12');
+    $db->query('INSERT INTO `test` VALUES (?a[?n, "?s", "?i", "?s"])', $user);
     getAffectedInfo($db);
 
-    // LIKE-поиск записи, содержащей в поле `name` служебный символ % (процент)
-    $result = $db->query('SELECT * FROM `test` WHERE `name` LIKE "%?S%"', '%');
-    getSelectInfo($db, $result);
+
+    echo("\n\nРазличные варианты SELECT:\n\n");
 
     $result = $db->query('SELECT * FROM `test` WHERE `id` = ?i', 1);
     getSelectInfo($db, $result);
@@ -51,15 +54,20 @@ try
     getSelectInfo($db, $result);
 
     // Передать массив и получить результат на основе выборки.
-    $result = $db->query('SELECT * FROM `test` WHERE `name` IN (?a["?s", "?s", "?s"])', array('Катя', 'Иван', 'Роман'));
+    $result = $db->query('SELECT * FROM `test` WHERE `name` IN (?a["?s", "?s", "?s"])', array('Василий', 'Иван', 'Анна_Каренина'));
     getSelectInfo($db, $result);
 
     // Тоже самое, но типизировать и перечислять в заменителях точное количество аргументов не нужно.
     // Значения аргументов будут заключены в "двойные" кавчки.
-    $result = $db->query('SELECT * FROM `test` WHERE `name` IN (?as) OR `name` IN (?as)',
-                         array('Пётр', 'Маша', 'Роман', 'Ибрагим'),
-                         array('Иван', 'Фёдор', 'Катя')
-                        );
+    $result = $db->query(
+        'SELECT * FROM `test` WHERE `name` IN (?as) OR `id` IN (?ai)',
+        array('Пётр', 'Маша', 'Роман', 'Василий'),
+        array('2', '3+мусор', '46')
+    );
+    getSelectInfo($db, $result);
+
+    // LIKE-поиск записи, содержащей в поле `name` служебный символ % (процент)
+    $result = $db->query('SELECT * FROM `test` WHERE `name` LIKE "%?S%"', '_');
     getSelectInfo($db, $result);
 
     // Записать NULL в качестве значений
@@ -67,18 +75,21 @@ try
     getSelectInfo($db, $result);
 
     // Применение метода queryArguments()
-    $sql = 'SELECT * FROM `test` WHERE `name` IN (?as)';
+    $sql = 'SELECT * FROM `test` WHERE `name` IN (?as) OR `name` IN (?as)';
     $arguments[] = array('Пётр', 'Маша', 'Роман');
-    $sql .= ' OR `name` IN (?as)';
     $arguments[] = array('Пётр', 'Иван', 'Катя');
     $result = $db->queryArguments($sql, $arguments);
     getSelectInfo($db, $result);
+
+    // Применение метода prepare() - просто подготовленный корректный SQL-запрос
+    echo $db->prepare('SELECT * FROM `test` WHERE `id` IN (?ai)', array(1, '2', '3+мусор'));
+    echo "\n\n";
 
     // Получаем все запросы текущего соединения:
     print_r($db->getQueries());
     echo "\n\n";
 
-    // получить все и вывести
+    // Получить все и вывести
     $res = $db->query('SELECT * FROM test');
     while ($data = $res->fetch_assoc()) {
         print_r($data);
@@ -108,7 +119,7 @@ function getAffectedInfo($db)
     echo "\n";
     echo 'Затронуто строк: ' . $db->getAffectedRows();
     if ($id = $db->getLastInsertId()) {
-           echo "\n";
+        echo "\n";
         echo 'Last insert ID: ' . $db->getLastInsertId();
     }
     echo "\n\n";
