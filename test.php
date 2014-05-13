@@ -1,6 +1,6 @@
 <?php
 error_reporting(E_ALL|E_STRICT);
-header('Content-type: text/plain; charset=windows-1251');
+header('Content-type: text/plain; charset=utf-8');
 
 include('./Mysql.php');
 include('./Mysql/Exception.php');
@@ -22,74 +22,74 @@ try
     adress varchar(255)
     )');
 
-    // Ðàäè èíòåðåñà ðàñêîìåíòèðóéòå ñòðîêó íèæå è ïîñìîòðèòå íà ïîâåäåíèå ðåæèìà MODE_STRICT íà ðàçíûõ çàïðîñàõ
+    // Ð Ð°Ð´Ð¸ Ð¸Ð½Ñ‚ÐµÑ€ÐµÑÐ° Ñ€Ð°ÑÐºÐ¾Ð¼ÐµÐ½Ñ‚Ð¸Ñ€ÑƒÐ¹Ñ‚Ðµ ÑÑ‚Ñ€Ð¾ÐºÑƒ Ð½Ð¸Ð¶Ðµ Ð¸ Ð¿Ð¾ÑÐ¼Ð¾Ñ‚Ñ€Ð¸Ñ‚Ðµ Ð½Ð° Ð¿Ð¾Ð²ÐµÐ´ÐµÐ½Ð¸Ðµ Ñ€ÐµÐ¶Ð¸Ð¼Ð° MODE_STRICT Ð½Ð° Ñ€Ð°Ð·Ð½Ñ‹Ñ… Ð·Ð°Ð¿Ñ€Ð¾ÑÐ°Ñ…
     // $db->setTypeMode(Krugozor_Database_Mysql::MODE_STRICT);
 
 
-    echo("\n\nÐàçëè÷íûå âàðèàíòû INSERT:\n\n");
+    echo("\n\nÐ Ð°Ð·Ð»Ð¸Ñ‡Ð½Ñ‹Ðµ Ð²Ð°Ñ€Ð¸Ð°Ð½Ñ‚Ñ‹ INSERT:\n\n");
 
-    $db->query('INSERT INTO `test` VALUES (?n, "?s", "?i", "?s")', null, 'Èâàí', '25', 'Êëèí, ÇÀÎ "Ðîãà è êîïûòà"');
+    $db->query('INSERT INTO `test` VALUES (?n, "?s", "?i", "?s")', null, 'Ð˜Ð²Ð°Ð½', '25', 'ÐšÐ»Ð¸Ð½, Ð—ÐÐž "Ð Ð¾Ð³Ð° Ð¸ ÐºÐ¾Ð¿Ñ‹Ñ‚Ð°"');
     getAffectedInfo($db);
 
-    $user = array('name' => 'Âàñèëèé', 'age' => '30', 'adress' => "Ìîñêâà, ÎÎÎ 'Ì.Âèäåî'");
+    $user = array('name' => 'Ð’Ð°ÑÐ¸Ð»Ð¸Ð¹', 'age' => '30', 'adress' => "ÐœÐ¾ÑÐºÐ²Ð°, ÐžÐžÐž 'Ðœ.Ð’Ð¸Ð´ÐµÐ¾'");
     $db->query('INSERT INTO `test` SET ?As', $user);
     getAffectedInfo($db);
 
-    $user = array('id' => null, 'name' => 'Ï¸òð', 'age' => '19', 'adress' => 'Ìîñêâà, óë. Êðàñíîñåëüñêàÿ, 40\12');
+    $user = array('id' => null, 'name' => 'ÐŸÑ‘Ñ‚Ñ€', 'age' => '19', 'adress' => 'ÐœÐ¾ÑÐºÐ²Ð°, ÑƒÐ». ÐšÑ€Ð°ÑÐ½Ð¾ÑÐµÐ»ÑŒÑÐºÐ°Ñ, 40\12');
     $db->query('INSERT INTO `test` SET ?A[?n, "?s", "?s", "?s"]', $user);
     getAffectedInfo($db);
 
-    $user = array('id' => null, 'name' => 'Àííà_Êàðåíèíà', 'age' => '23 ãîäà', 'adress' => 'Ìîñêâà, óë. Ðàäèàëüíàÿ, 12');
+    $user = array('id' => null, 'name' => 'ÐÐ½Ð½Ð°_ÐšÐ°Ñ€ÐµÐ½Ð¸Ð½Ð°', 'age' => '23 Ð³Ð¾Ð´Ð°', 'adress' => 'ÐœÐ¾ÑÐºÐ²Ð°, ÑƒÐ». Ð Ð°Ð´Ð¸Ð°Ð»ÑŒÐ½Ð°Ñ, 12');
     $db->query('INSERT INTO `test` VALUES (?a[?n, "?s", "?i", "?s"])', $user);
     getAffectedInfo($db);
 
 
-    echo("\n\nÐàçëè÷íûå âàðèàíòû SELECT:\n\n");
+    echo("\n\nÐ Ð°Ð·Ð»Ð¸Ñ‡Ð½Ñ‹Ðµ Ð²Ð°Ñ€Ð¸Ð°Ð½Ñ‚Ñ‹ SELECT:\n\n");
 
     $result = $db->query('SELECT * FROM `test` WHERE `id` = ?i', 1);
     getSelectInfo($db, $result);
 
-    // Âûáîð çàïèñè ïî ìàðêåðó ÷èñëà - ?i, íî ñ óêàçàíèåì íå ÷èñëîâîé ñòðîêè '2+ìóñîð'.
-    $result = $db->query('SELECT * FROM `test` WHERE `id` = ?i', '2+ìóñîð');
+    // Ð’Ñ‹Ð±Ð¾Ñ€ Ð·Ð°Ð¿Ð¸ÑÐ¸ Ð¿Ð¾ Ð¼Ð°Ñ€ÐºÐµÑ€Ñƒ Ñ‡Ð¸ÑÐ»Ð° - ?i, Ð½Ð¾ Ñ ÑƒÐºÐ°Ð·Ð°Ð½Ð¸ÐµÐ¼ Ð½Ðµ Ñ‡Ð¸ÑÐ»Ð¾Ð²Ð¾Ð¹ ÑÑ‚Ñ€Ð¾ÐºÐ¸ '2+Ð¼ÑƒÑÐ¾Ñ€'.
+    $result = $db->query('SELECT * FROM `test` WHERE `id` = ?i', '2+Ð¼ÑƒÑÐ¾Ñ€');
     getSelectInfo($db, $result);
 
-    // Ïåðåäàòü ìàññèâ è ïîëó÷èòü ðåçóëüòàò íà îñíîâå âûáîðêè.
-    $result = $db->query('SELECT * FROM `test` WHERE `name` IN (?a["?s", "?s", "?s"])', array('Âàñèëèé', 'Èâàí', 'Àííà_Êàðåíèíà'));
+    // ÐŸÐµÑ€ÐµÐ´Ð°Ñ‚ÑŒ Ð¼Ð°ÑÑÐ¸Ð² Ð¸ Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ñ‚ÑŒ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚ Ð½Ð° Ð¾ÑÐ½Ð¾Ð²Ðµ Ð²Ñ‹Ð±Ð¾Ñ€ÐºÐ¸.
+    $result = $db->query('SELECT * FROM `test` WHERE `name` IN (?a["?s", "?s", "?s"])', array('Ð’Ð°ÑÐ¸Ð»Ð¸Ð¹', 'Ð˜Ð²Ð°Ð½', 'ÐÐ½Ð½Ð°_ÐšÐ°Ñ€ÐµÐ½Ð¸Ð½Ð°'));
     getSelectInfo($db, $result);
 
-    // Òîæå ñàìîå, íî òèïèçèðîâàòü è ïåðå÷èñëÿòü â çàìåíèòåëÿõ òî÷íîå êîëè÷åñòâî àðãóìåíòîâ íå íóæíî.
-    // Çíà÷åíèÿ àðãóìåíòîâ áóäóò çàêëþ÷åíû â "äâîéíûå" êàâ÷êè.
+    // Ð¢Ð¾Ð¶Ðµ ÑÐ°Ð¼Ð¾Ðµ, Ð½Ð¾ Ñ‚Ð¸Ð¿Ð¸Ð·Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ Ð¸ Ð¿ÐµÑ€ÐµÑ‡Ð¸ÑÐ»ÑÑ‚ÑŒ Ð² Ð·Ð°Ð¼ÐµÐ½Ð¸Ñ‚ÐµÐ»ÑÑ… Ñ‚Ð¾Ñ‡Ð½Ð¾Ðµ ÐºÐ¾Ð»Ð¸Ñ‡ÐµÑÑ‚Ð²Ð¾ Ð°Ñ€Ð³ÑƒÐ¼ÐµÐ½Ñ‚Ð¾Ð² Ð½Ðµ Ð½ÑƒÐ¶Ð½Ð¾.
+    // Ð—Ð½Ð°Ñ‡ÐµÐ½Ð¸Ñ Ð°Ñ€Ð³ÑƒÐ¼ÐµÐ½Ñ‚Ð¾Ð² Ð±ÑƒÐ´ÑƒÑ‚ Ð·Ð°ÐºÐ»ÑŽÑ‡ÐµÐ½Ñ‹ Ð² "Ð´Ð²Ð¾Ð¹Ð½Ñ‹Ðµ" ÐºÐ°Ð²Ñ‡ÐºÐ¸.
     $result = $db->query(
         'SELECT * FROM `test` WHERE `name` IN (?as) OR `id` IN (?ai)',
-        array('Ï¸òð', 'Ìàøà', 'Ðîìàí', 'Âàñèëèé'),
-        array('2', '3+ìóñîð', '46')
+        array('ÐŸÑ‘Ñ‚Ñ€', 'ÐœÐ°ÑˆÐ°', 'Ð Ð¾Ð¼Ð°Ð½', 'Ð’Ð°ÑÐ¸Ð»Ð¸Ð¹'),
+        array('2', '3+Ð¼ÑƒÑÐ¾Ñ€', '46')
     );
     getSelectInfo($db, $result);
 
-    // LIKE-ïîèñê çàïèñè, ñîäåðæàùåé â ïîëå `name` ñëóæåáíûé ñèìâîë % (ïðîöåíò)
+    // LIKE-Ð¿Ð¾Ð¸ÑÐº Ð·Ð°Ð¿Ð¸ÑÐ¸, ÑÐ¾Ð´ÐµÑ€Ð¶Ð°Ñ‰ÐµÐ¹ Ð² Ð¿Ð¾Ð»Ðµ `name` ÑÐ»ÑƒÐ¶ÐµÐ±Ð½Ñ‹Ð¹ ÑÐ¸Ð¼Ð²Ð¾Ð» % (Ð¿Ñ€Ð¾Ñ†ÐµÐ½Ñ‚)
     $result = $db->query('SELECT * FROM `test` WHERE `name` LIKE "%?S%"', '_');
     getSelectInfo($db, $result);
 
-    // Çàïèñàòü NULL â êà÷åñòâå çíà÷åíèé
+    // Ð—Ð°Ð¿Ð¸ÑÐ°Ñ‚ÑŒ NULL Ð² ÐºÐ°Ñ‡ÐµÑÑ‚Ð²Ðµ Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ð¹
     $db->query('INSERT INTO `test` VALUES (?n, ?n, ?n, ?n)', NULL, NULL, NULL, NULL);
     getSelectInfo($db, $result);
 
-    // Ïðèìåíåíèå ìåòîäà queryArguments()
+    // ÐŸÑ€Ð¸Ð¼ÐµÐ½ÐµÐ½Ð¸Ðµ Ð¼ÐµÑ‚Ð¾Ð´Ð° queryArguments()
     $sql = 'SELECT * FROM `test` WHERE `name` IN (?as) OR `name` IN (?as)';
-    $arguments[] = array('Ï¸òð', 'Ìàøà', 'Ðîìàí');
-    $arguments[] = array('Ï¸òð', 'Èâàí', 'Êàòÿ');
+    $arguments[] = array('ÐŸÑ‘Ñ‚Ñ€', 'ÐœÐ°ÑˆÐ°', 'Ð Ð¾Ð¼Ð°Ð½');
+    $arguments[] = array('ÐŸÑ‘Ñ‚Ñ€', 'Ð˜Ð²Ð°Ð½', 'ÐšÐ°Ñ‚Ñ');
     $result = $db->queryArguments($sql, $arguments);
     getSelectInfo($db, $result);
 
-    // Ïðèìåíåíèå ìåòîäà prepare() - ïðîñòî ïîäãîòîâëåííûé êîððåêòíûé SQL-çàïðîñ
-    echo $db->prepare('SELECT * FROM `test` WHERE `id` IN (?ai)', array(1, '2', '3+ìóñîð'));
+    // ÐŸÑ€Ð¸Ð¼ÐµÐ½ÐµÐ½Ð¸Ðµ Ð¼ÐµÑ‚Ð¾Ð´Ð° prepare() - Ð¿Ñ€Ð¾ÑÑ‚Ð¾ Ð¿Ð¾Ð´Ð³Ð¾Ñ‚Ð¾Ð²Ð»ÐµÐ½Ð½Ñ‹Ð¹ ÐºÐ¾Ñ€Ñ€ÐµÐºÑ‚Ð½Ñ‹Ð¹ SQL-Ð·Ð°Ð¿Ñ€Ð¾Ñ
+    echo $db->prepare('SELECT * FROM `test` WHERE `id` IN (?ai)', array(1, '2', '3+Ð¼ÑƒÑÐ¾Ñ€'));
     echo "\n\n";
 
-    // Ïîëó÷àåì âñå çàïðîñû òåêóùåãî ñîåäèíåíèÿ:
+    // ÐŸÐ¾Ð»ÑƒÑ‡Ð°ÐµÐ¼ Ð²ÑÐµ Ð·Ð°Ð¿Ñ€Ð¾ÑÑ‹ Ñ‚ÐµÐºÑƒÑ‰ÐµÐ³Ð¾ ÑÐ¾ÐµÐ´Ð¸Ð½ÐµÐ½Ð¸Ñ:
     print_r($db->getQueries());
     echo "\n\n";
 
-    // Ïîëó÷èòü âñå è âûâåñòè
+    // ÐŸÐ¾Ð»ÑƒÑ‡Ð¸Ñ‚ÑŒ Ð²ÑÐµ Ð¸ Ð²Ñ‹Ð²ÐµÑÑ‚Ð¸
     $res = $db->query('SELECT * FROM test');
     while ($data = $res->fetch_assoc()) {
         print_r($data);
@@ -97,7 +97,7 @@ try
     }
     echo "\n\n";
 
-    // Âñ¸ óäàëèì
+    // Ð’ÑÑ‘ ÑƒÐ´Ð°Ð»Ð¸Ð¼
     $db->query('DELETE FROM `test`');
     getAffectedInfo($db);
 }
@@ -107,7 +107,7 @@ catch (Krugozor_Database_Mysql_Exception $e)
 }
 
 /**
- * Ïðîñìîòð èíôîðìàöèè ïîñëå INSERT, UPDATE èëè DELETE.
+ * ÐŸÑ€Ð¾ÑÐ¼Ð¾Ñ‚Ñ€ Ð¸Ð½Ñ„Ð¾Ñ€Ð¼Ð°Ñ†Ð¸Ð¸ Ð¿Ð¾ÑÐ»Ðµ INSERT, UPDATE Ð¸Ð»Ð¸ DELETE.
  *
  * @param $db Krugozor_Database_Mysql
  */
@@ -117,7 +117,7 @@ function getAffectedInfo($db)
     echo "\n";
     echo "SQL: " . $db->getQueryString();
     echo "\n";
-    echo 'Çàòðîíóòî ñòðîê: ' . $db->getAffectedRows();
+    echo 'Ð—Ð°Ñ‚Ñ€Ð¾Ð½ÑƒÑ‚Ð¾ ÑÑ‚Ñ€Ð¾Ðº: ' . $db->getAffectedRows();
     if ($id = $db->getLastInsertId()) {
         echo "\n";
         echo 'Last insert ID: ' . $db->getLastInsertId();
@@ -126,7 +126,7 @@ function getAffectedInfo($db)
 }
 
 /**
- * Ïðîñìîòð èíôîðìàöèè ïîñëå SELECT.
+ * ÐŸÑ€Ð¾ÑÐ¼Ð¾Ñ‚Ñ€ Ð¸Ð½Ñ„Ð¾Ñ€Ð¼Ð°Ñ†Ð¸Ð¸ Ð¿Ð¾ÑÐ»Ðµ SELECT.
  *
  * @param $db Krugozor_Database_Mysql
  * @param $result Krugozor_Database_Mysql_Statement
@@ -135,6 +135,6 @@ function getSelectInfo($db, $result)
 {
     echo "SQL: " . $db->getQueryString();
     echo "\n";
-    echo 'Ïîëó÷åíî çàïèñåé: ' . $result->getNumRows();
+    echo 'ÐŸÐ¾Ð»ÑƒÑ‡ÐµÐ½Ð¾ Ð·Ð°Ð¿Ð¸ÑÐµÐ¹: ' . $result->getNumRows();
     echo "\n\n";
 }
