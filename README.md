@@ -6,7 +6,7 @@ Rus
 Данный класс использует технологию placeholders - для формирования корректных SQL-запросов, в строке запроса вместо значений пишутся специальные типизированные маркеры - заполнители, а сами данные передаются "позже", в качестве последующих аргументов основного метода, выполняющего SQL-запрос:
 <code>
 ```sql
-$db->query('SELECT * FROM `table` WHERE `field_1` = "?s" AND `field_2` = ?i', 'вася', 30);
+$db->query('SELECT * FROM `t` WHERE `name` = "?s" AND `age` = ?i', $_POST['name'], $_POST['age']);
 ```
 </code>
 
@@ -21,7 +21,7 @@ Eng
 Database - class for develop with database mysql, use adapter PHP mysqli and use placeholder, when each literal (argument) in string SQL query escaping without specific PHP functions like a mysqli_real_escape_string(). 
 <code>
 ```sql
-$db->query('SELECT * FROM `table` WHERE `field_1` = "?s" AND `field_2` = ?i', 'Basiel', 30);
+$db->query('SELECT * FROM `t` WHERE `name` = "?s" AND `age` = ?i', $_POST['name'], $_POST['age']);
 ```
 </code>
 
