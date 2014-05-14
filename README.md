@@ -25,6 +25,6 @@ $db->query('SELECT * FROM `t` WHERE `name` = "?s" AND `age` = ?i', $_POST['name'
 ```
 </code>
 
-The data passed through the placeholders, screened by special screening function, depending on the type of filler. Ie you do not need to enter variables in the screening function type mysqli_real_escape_string ($ value) or bring them to a numeric type (int) $ value.
+The data passed through the placeholders, screened by special screening function, depending on the type of filler. Ie you do not need to enter variables in the screening function type _mysqli_real_escape_string($value)_ or bring them to a numeric type _(int)$value_.
 
 Details, see the file <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/Mysql.php">/Mysql.php</a>. Tests and the use of different variations, see the file <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/samples.php">./samples.php</a>.
