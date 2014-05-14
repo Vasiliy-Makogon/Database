@@ -13,7 +13,7 @@ $db->query('SELECT * FROM `table` WHERE `field_1` = "?s" AND `field_2` = ?i', '�
 Данные, прошедшие через систему placeholders, экранируются специальными функциями экранирования, в зависимости от типа заполнителей. Т.е. вам нет необходимости заключать переменные в функции экранирования типа _mysqli_real_escape_string($value)_ или приводить их к числовому типу через _(int)$value_.
 
 Подробное описание см. в файле <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/Mysql.php">/Mysql.php</a>.
-Тесты и различные вариации использования см. в файле <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/test.php">./test.php</a>.
+Тесты и различные вариации использования см. в файле <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/samples.php">./test.php</a>.
 
 Eng
 ---
@@ -27,4 +27,4 @@ $db->query('SELECT * FROM `table` WHERE `field_1` = "?s" AND `field_2` = ?i', 'B
 
 The data passed through the placeholders, screened by special screening function, depending on the type of filler. Ie you do not need to enter variables in the screening function type mysqli_real_escape_string ($ value) or bring them to a numeric type (int) $ value.
 
-Details, see the file <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/Mysql.php">/Mysql.php</a>. Tests and the use of different variations, see the file <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/test.php">./test.php</a>.
+Details, see the file <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/Mysql.php">/Mysql.php</a>. Tests and the use of different variations, see the file <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/samples.php">./test.php</a>.
