@@ -14,6 +14,9 @@ class Krugozor_Database_Mysql_Statement
      */
     private $mysqli_result = null;
 
+    /**
+     * @param mysqli_result
+     */
     public function __construct(mysqli_result $mysqli_result)
     {
         $this->mysqli_result = $mysqli_result;
@@ -127,6 +130,7 @@ class Krugozor_Database_Mysql_Statement
      * Возвращает количество рядов в результате.
      * Эта команда верна только для операторов SELECT.
      *
+     * @see mysqli_num_rows
      * @param void
      * @return int
      */
