@@ -12,7 +12,7 @@ try
           ->setCharset('utf8')
           ->setDatabaseName('test');
 
-	// Ради интереса раскоментируйте строку ниже и посмотрите на поведение режима MODE_STRICT на разных запросах
+    // Создаем таблицу для тестирования.
     $db->query('DROP TABLE IF EXISTS users');
 
     $db->query('
