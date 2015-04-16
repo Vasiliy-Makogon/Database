@@ -1,4 +1,5 @@
 <?php
+// Примеры использования Krugozor_Database_Mysql
 error_reporting(E_ALL|E_STRICT);
 header('Content-type: text/plain; charset=utf-8');
 
