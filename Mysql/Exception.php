@@ -1,5 +1,5 @@
 <?php
-class Krugozor_Database_Mysql_Exception extends Exception
+class Database_Mysql_Exception extends Exception
 {
-	
+
 }

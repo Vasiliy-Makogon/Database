@@ -1,11 +1,11 @@
 <?php
 /**
- * @author Vasiliy Makogon, makogon.vs@gmail.com
- * @link http://www.phpinfo.su/
+ * @author Vasiliy Makogon, makogon-vs@yandex.ru
+ * @link http://database.phpinfo.su/
  *
  * Обёртка над объектом mysqli_result.
  */
-class Krugozor_Database_Mysql_Statement
+class Database_Mysql_Statement
 {
     /**
      * Рузультат SQL-операции в виде объекта mysqli_result.
@@ -60,7 +60,7 @@ class Krugozor_Database_Mysql_Statement
     }
 
     /**
-     * Возвращает результат в виде двухмерного массива ассоциативных массивов.
+     * Возвращает результат в виде массива ассоциативных массивов.
      *
      * @param void
      * @return array
@@ -69,7 +69,7 @@ class Krugozor_Database_Mysql_Statement
     {
         $array = array();
 
-        while($row = mysqli_fetch_assoc($this->mysqli_result))
+        while ($row = mysqli_fetch_assoc($this->mysqli_result))
         {
             $array[] = $row;
         }
@@ -78,7 +78,7 @@ class Krugozor_Database_Mysql_Statement
     }
 
     /**
-     * Возвращает результат в виде двухмерного массива массивов.
+     * Возвращает результат в виде массива массивов.
      *
      * @param void
      * @return array
@@ -87,7 +87,7 @@ class Krugozor_Database_Mysql_Statement
     {
         $array = array();
 
-        while($row = mysqli_fetch_row($this->mysqli_result))
+        while ($row = mysqli_fetch_row($this->mysqli_result))
         {
             $array[] = $row;
         }
@@ -105,7 +105,7 @@ class Krugozor_Database_Mysql_Statement
     {
         $array = array();
 
-        while($row = mysqli_fetch_object($this->mysqli_result))
+        while ($row = mysqli_fetch_object($this->mysqli_result))
         {
             $array[] = $row;
         }
@@ -158,7 +158,7 @@ class Krugozor_Database_Mysql_Statement
      */
     public function free()
     {
-        mysqli_free_result($this->mysqli_result);
+        $this->mysqli_result->free();
     }
 
     public function __destruct()
