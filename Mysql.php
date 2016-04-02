@@ -639,7 +639,7 @@ class Database_Mysql
      */
     private function createErrorMessage($type, $value, $original_query)
     {
-        return __CLASS__ . ': Попытка записать как ' . $type .
+        return __CLASS__ . ': Попытка представить как ' . $type .
               ' значение "' . print_r($value, true) .
               '" типа ' . gettype($value) .
               ' в запросе "' . $original_query . '"';
@@ -986,6 +986,10 @@ class Database_Mysql
      */
     private function escapeFieldName($value)
     {
+        if (!is_string($value)) {
+            throw new Krugozor_Database_Mysql_Exception($this->createErrorMessage('field', $value, $this->original_query));
+        }
+
         $new_value = '';
 
         $replace = function(){
