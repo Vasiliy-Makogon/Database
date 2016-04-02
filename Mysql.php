@@ -987,7 +987,7 @@ class Database_Mysql
     private function escapeFieldName($value)
     {
         if (!is_string($value)) {
-            throw new Krugozor_Database_Mysql_Exception($this->createErrorMessage('field', $value, $this->original_query));
+            throw new Database_Mysql_Exception($this->createErrorMessage('field', $value, $this->original_query));
         }
 
         $new_value = '';
