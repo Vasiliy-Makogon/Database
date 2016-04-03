@@ -12,8 +12,7 @@ $db->query('SELECT * FROM `t` WHERE `name` = "?s" AND `age` = ?i', $_POST['name'
 
 Данные, прошедшие через систему placeholders, экранируются специальными функциями экранирования, в зависимости от типа заполнителей. Т.е. вам нет необходимости заключать переменные в функции экранирования типа _mysqli_real_escape_string($value)_ или приводить их к числовому типу через _(int)$value_.
 
-Подробное описание см. в файле <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/Mysql.php">/Mysql.php</a>.
-Тесты и различные вариации использования см. в файле <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/samples.php">./samples.php</a>.
+Подробное описание см. в файле <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/Mysql.php">/Mysql.php</a> или на сайте <a href="http://www.database.phpinfo.su/">database.phpinfo.su</a>
 
 Eng
 ---
@@ -26,4 +25,4 @@ $db->query('SELECT * FROM `t` WHERE `name` = "?s" AND `age` = ?i', $_POST['name'
 
 The data passed through the placeholders, screened by special screening function, depending on the type of filler. Ie you do not need to enter variables in the screening function type _mysqli_real_escape_string($value)_ or bring them to a numeric type _(int)$value_.
 
-Details, see the file <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/Mysql.php">/Mysql.php</a>. Tests and the use of different variations, see the file <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/samples.php">./samples.php</a>.
+Details, see the file <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/Mysql.php">/Mysql.php</a> or website <a href="http://www.database.phpinfo.su/">database.phpinfo.su</a>.
