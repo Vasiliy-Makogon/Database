@@ -4,10 +4,10 @@
  * @link http://database.phpinfo.su/
  *
  * ---------------------------------------------------------------------------------------------------------------------
- *     Класс для удобной и безопасной работы с СУБД MySql на базе расширения PHP mysqli.
+ *     Библиотека для удобной и безопасной работы с СУБД MySql на базе расширения PHP mysqli.
  * ---------------------------------------------------------------------------------------------------------------------
  *
- * Данный класс имулирует технологию Prepared statement (или placeholders) - для формирования корректных SQL-запросов
+ * Библиотека имулирует технологию Prepared statement (или placeholders) - для формирования корректных SQL-запросов
  * (т.е. запросов, исключающих SQL-уязвимости), в строке запроса вместо значений пишутся специальные типизированные
  * маркеры - т.н. "заполнители", а сами данные передаются "позже", в качестве последующих аргументов основного метода,
  * выполняющего SQL-запрос - Database_Mysql::query($sql [, $arg, $...]):
@@ -21,7 +21,7 @@
  * Кроме того, данный класс позволяет:
  * - получать "подготовленный" SQL-запрос для отладки, т.е. запрос с реальными значениями, что невозможно сделать
  * используя "сырые" драйверы PHP типа PDO.
- * - получать список всех выполненых запросов выполненных в рамках одного подключения к Mysql-серверу.
+ * - получать список всех запросов выполненных в рамках одного подключения к Mysql-серверу.
  *
  *
  * ---------------------------------------------------------------------------------------------------------------------
@@ -34,28 +34,22 @@
  *                                           типа заполнителя и типа аргумента.
  *
  * Режим Database_Mysql::MODE_TRANSFORM установлен по умолчанию и является основным для большинства приложений.
- * Не изменяйте этот режим, если вам не нужна строгая типизация аргументов в запросах.
+ * Если же вам нужна максимальная прозрачность операций над типами данных, производимых библиотекой Datavase,
+ * установите режим Database_Mysql::MODE_STRICT.
  *
  *
  *     MODE_STRICT
  *
- * В "строгом" режиме MODE_STRICT аргументы, передаваемые в основной метод
- * Database_Mysql::query(), должны в ТОЧНОСТИ соответствовать типу заполнителя.
- * Разберем примеры:
+ * В "строгом" режиме MODE_STRICT аргументы, передаваемые в основной метод Database_Mysql::query(),
+ * должны соответствовать типу заполнителя.
+ * Например, попытка передать в качестве аргумента значение 55.5 или '55.5' для заполнителя целочисленного типа ?i
+ * приведет к выбросу исключения:
  *
- * $db->query('SELECT * FROM `table` WHERE `field` = ?i', '123_string'); - будет выброшено исключение
- * "Попытка записать как int значение "123_string" типа string в запросе ..."
- * т.к. указан тип заполнителя ?i (int - целое число), а в качестве аргумента передается строка '123_string'.
+ * $db->setTypeMode(Database_Mysql::MODE_STRICT); // устанавливаем строгий режим работы
+ * $db->query('SELECT ?i', 55.5); // Попытка указать для заполнителя типа int значение типа double в шаблоне запроса SELECT ?i
  *
- * $db->query('SELECT * FROM `table` WHERE `field` = "?s"', 123); - будет выброшено исключение
- * "Попытка записать как string значение 123 типа integer в запросе ..."
- * т.к. указан тип заполнителя ?s (string - строка), а в качестве аргумента передается число 123.
- *
- * $db->query('SELECT * FROM `table` WHERE `field` IN (?as)', array(null, 123, true, 'string')); - будет выброшено исключение
- * "Попытка записать как string значение "" типа NULL в запросе ..."
- * т.к. заполнитель множества ?as ожидает, что все элементы массива-аргумета будут типа s (string - строка),
- * но на деле все элементы массива представляют собой данные различных типов.
- * Парсер прекратил разбор на первом несоответствии типа заполнителя и типа аргумента - на элементе массива со значением null.
+ * Это утверждение не относится к числам (целым и с плавающей точкой), заключенным в строки.
+ * С точки зрения библиотеки, строка '123' и значение 123 являются типом int.
  *
  *
  *     MODE_TRANSFORM
@@ -65,34 +59,25 @@
  *
  * Допускаются следующие преобразования:
  *
- * К строковому типу приводятся данные типа boolean, numeric, NULL:
+ * К типу int приводятся (заполнитель ?i):
+ *     - числа с плавающей точкой, представленные как строка или тип double
+ *     - bool
+ *     - null
+ *
+ * К типу double приводятся (заполнитель ?d):
+ *     - целые числа, представленные как строка или тип int
+ *     - bool
+ *     - null
+ *
+ * К типу string приводятся (заполнитель ?s):
  *     - значение boolean TRUE преобразуется в строку "1", а значение FALSE преобразуется в "" (пустую строку).
  *     - значение типа numeric преобразуется в строку согласно правилам преобразования, определенным языком.
  *     - NULL преобразуется в пустую строку.
+ *
+ * К типу null приводятся (заполнитель ?n):
+ *     - любые аргументы
+ *
  * Для массивов, объектов и ресурсов преобразования не допускаются.
- *
- * Пример выражения:
- *     $db->query('SELECT * FROM `table` WHERE f1 = "?s", f2 = "?s", f3 = "?s"', null, 123, true);
- * Результат преобразования:
- *     SELECT * FROM `table` WHERE f1 = "", f2 = "123", f3 = "1"
- *
- * К целочисленному типу приводятся данные типа boolean, string, NULL:
- *     - значение boolean FALSE преобразуется в 0 (ноль), а TRUE - в 1 (единицу).
- *     - значение типа string преобразуется согласно правилам преобразования, определенным языком.
- *     - NULL преобразуется в 0.
- * Для массивов, объектов и ресурсов преобразования не допускаются.
- *
- * Пример выражения:
- *     $db->query('SELECT * FROM `table` WHERE f1 = ?i, f2 = ?i, f3 = ?i, f4 = ?i', null, '123abc', 'abc', true);
- * Результат преобразования:
- *     SELECT * FROM `table` WHERE f1 = 0, f2 = 123, f3 = 0, f4 = 1
- *
- * Заполнитель NULL-типа игнорирует любые сопоставленные с ним аргументы.
- *
- * Пример выражения:
- *     $db->query('INSERT INTO `table` VALUES (?n, ?n, ?n, ?n)', 123, '123', 'string', 1.74);
- * Результат преобразования:
- *     INSERT INTO `table` VALUES (NULL, NULL, NULL, NULL)
  *
  *
  * ---------------------------------------------------------------------------------------------------------------------
@@ -106,7 +91,7 @@
  *      В режиме MODE_TRANSFORM любые скалярные аргументы принудительно приводятся к типу integer
  *      согласно правилам преобразования к типу integer в PHP.
  *
- * ?p - заполнитель числа с плавающей точкой (первая буква слова point).
+ * ?d - заполнитель числа с плавающей точкой (первая буква слова point).
  *      В режиме MODE_TRANSFORM любые скалярные аргументы принудительно приводятся к типу float
  *      согласно правилам преобразования к типу float в PHP.
  *
@@ -138,11 +123,11 @@
  *       - s (string)
  *       правила преобразования и экранирования такие же, как и для одиночных скалярных аргументов (см. выше).
  *
- * ?A[?n, ?s, ?i, ?p] - заполнитель ассоциативного множества с явным указанием типа и количества аргументов,
+ * ?A[?n, ?s, ?i, ?d] - заполнитель ассоциативного множества с явным указанием типа и количества аргументов,
  *                      генерирующий последовательность пар ключ => значение.
  *                      Пример: "key_1" = "val_1", "key_2" => "val_2", ...
  *
- * ?a[?n, ?s, ?i, ?p] - заполнитель множества с явным указанием типа и количества аргументов, генерирующий
+ * ?a[?n, ?s, ?i, ?d] - заполнитель множества с явным указанием типа и количества аргументов, генерирующий
  *                      последовательность значений.
  *                      Пример: "val_1", "val_2", ...
  *
@@ -152,7 +137,7 @@
  * ---------------------------------------------------------------------------------------------------------------------
  *
  * Данный класс при формировании SQL-запроса НЕ занимается проставлением ограничивающих кавычек для одиночных
- * заполнителей скалярного типа, таких как ?i, ?p и ?s. Это сделано по идеологическим соображениям,
+ * заполнителей скалярного типа, таких как ?i, ?d и ?s. Это сделано по идеологическим соображениям,
  * автоподстановка кавычек может стать ограничением для возможностей SQL.
  * Например, выражение
  *     $db->query('SELECT "Total: ?s"', '200');
@@ -639,10 +624,7 @@ class Database_Mysql
      */
     private function createErrorMessage($type, $value, $original_query)
     {
-        return __CLASS__ . ': Попытка представить как ' . $type .
-              ' значение "' . print_r($value, true) .
-              '" типа ' . gettype($value) .
-              ' в запросе "' . $original_query . '"';
+        return "Попытка указать для заполнителя типа $type значение типа " . gettype($value) . " в шаблоне запроса $original_query";
     }
 
     /**
@@ -666,7 +648,7 @@ class Database_Mysql
             $placeholder_type = mb_substr($query, $posQM + 1, 1);
 
             // Любые ситуации с нахождением знака вопроса, который не явялется заполнителем.
-            if ($placeholder_type == '' || !in_array($placeholder_type, array('i', 'p', 's', 'S', 'n', 'A', 'a', 'f')))
+            if ($placeholder_type == '' || !in_array($placeholder_type, array('i', 'd', 's', 'S', 'n', 'A', 'a', 'f')))
             {
                 $offset += 1;
                 continue;
@@ -710,7 +692,7 @@ class Database_Mysql
                     break;
 
                 // Floating point
-                case 'p':
+                case 'd':
                     $value = $this->getValueFloatType($value, $original_query);
                     $query = mb_substr_replace($query, $value, $posQM, 2);
                     $offset += mb_strlen($value);
@@ -725,7 +707,7 @@ class Database_Mysql
 
                 // field or table name
                 case 'f':
-                    $value = $this->escapeFieldName($value);
+                    $value = $this->escapeFieldName($value, $original_query);
                     $query = mb_substr_replace($query, $value, $posQM, 2);
                     $offset += mb_strlen($value);
                     break;
@@ -742,7 +724,7 @@ class Database_Mysql
 
                     $next_char = mb_substr($query, $posQM + 2, 1);
 
-                    if ($next_char != '' && preg_match('#[sip\[]#u', $next_char, $matches))
+                    if ($next_char != '' && preg_match('#[sid\[]#u', $next_char, $matches))
                     {
                         // Парсим выражение вида ?a[?i, "?s", "?s"]
                         if ($next_char == '[' and ($close = mb_strpos($query, ']', $posQM+3)) !== false)
@@ -772,7 +754,7 @@ class Database_Mysql
                             {
                                 foreach ($replacements as $key => $val)
                                 {
-                                    $values[] = $this->escapeFieldName($key) . ' = ' . $val;
+                                    $values[] = $this->escapeFieldName($key, $original_query) . ' = ' . $val;
                                 }
 
                                 $value = implode(',', $values);
@@ -786,7 +768,7 @@ class Database_Mysql
                             $offset += mb_strlen($value);
                         }
                         // Выражение вида ?ai, ?as, ?ap
-                        else if (preg_match('#[sip]#u', $next_char, $matches))
+                        else if (preg_match('#[sid]#u', $next_char, $matches))
                         {
                             $sql = '';
                             $parts = array();
@@ -802,14 +784,14 @@ class Database_Mysql
                                     case 'i':
                                         $val = $this->getValueIntType($val, $original_query);
                                         break;
-                                    case 'p':
+                                    case 'd':
                                         $val = $this->getValueFloatType($val, $original_query);
                                         break;
                                 }
 
                                 if (!empty($is_associative_array))
                                 {
-                                    $parts[] = $this->escapeFieldName($key) . ' = "' . $val . '"';
+                                    $parts[] = $this->escapeFieldName($key, $original_query) . ' = "' . $val . '"';
                                 }
                                 else
                                 {
@@ -847,31 +829,17 @@ class Database_Mysql
      */
     private function getValueStringType($value, $original_query)
     {
-        if (!is_string($value))
+        if (!is_string($value) && !(is_numeric($value) || is_null($value) || is_bool($value)))
         {
-            if ($this->type_mode == self::MODE_STRICT)
-            {
-                throw new Database_Mysql_Exception($this->createErrorMessage('string', $value, $original_query));
-            }
-            else if ($this->type_mode == self::MODE_TRANSFORM)
-            {
-                if (is_numeric($value) || is_null($value) || is_bool($value))
-                {
-                    $value = (string)$value;
-                }
-                else
-                {
-                    throw new Database_Mysql_Exception($this->createErrorMessage('string', $value, $original_query));
-                }
-            }
+            throw new Database_Mysql_Exception($this->createErrorMessage('string', $value, $original_query));
         }
 
-        return $value;
+        return (string) $value;
     }
 
     /**
      * В зависимости от типа режима возвращает либо строковое значение числа $value,
-     * либо кидает исключение.
+     * приведенного к типу int, либо кидает исключение.
      *
      * @param mixed $value
      * @param string $original_query оригинальный SQL запрос
@@ -880,31 +848,35 @@ class Database_Mysql
      */
     private function getValueIntType($value, $original_query)
     {
-        if (!is_numeric($value))
+        if ($this->isInteger($value))
         {
-            if ($this->type_mode == self::MODE_STRICT)
-            {
-                throw new Database_Mysql_Exception($this->createErrorMessage('int', $value, $original_query));
-            }
-            else if ($this->type_mode == self::MODE_TRANSFORM)
-            {
-                if (is_string($value) || is_null($value) || is_bool($value))
-                {
-                    $value = (int)$value;
-                }
-                else
-                {
-                    throw new Database_Mysql_Exception($this->createErrorMessage('int', $value, $original_query));
-                }
-            }
+            return $value;
         }
 
-        return (string)$value;
+        switch ($this->type_mode)
+        {
+            case self::MODE_TRANSFORM:
+                if ($this->isFloat($value) || is_null($value) || is_bool($value))
+                {
+                    return (int) $value;
+                }
+
+            case self::MODE_STRICT:
+                // Если это числовой string, меняем его тип на float для вывода в тексте исключения.
+                if ($this->isFloat($value))
+                {
+                    $value += 0;
+                }
+                throw new Database_Mysql_Exception($this->createErrorMessage('integer', $value, $original_query));
+        }
     }
 
     /**
      * В зависимости от типа режима возвращает либо строковое значение числа $value,
-     * либо кидает исключение.
+     * приведенного к типу float, либо кидает исключение.
+     *
+     * Внимание! Разделитель целой и дробной части, возвращаемый float, может не совпадать с разделителем СУБД.
+     * Для установки необходимого разделителя дробной части используйте setlocale().
      *
      * @param mixed $value
      * @param string $original_query оригинальный SQL запрос
@@ -913,26 +885,27 @@ class Database_Mysql
      */
     private function getValueFloatType($value, $original_query)
     {
-        if (!is_numeric($value))
+        if ($this->isFloat($value))
         {
-            if ($this->type_mode == self::MODE_STRICT)
-            {
-                throw new Database_Mysql_Exception($this->createErrorMessage('float', $value, $original_query));
-            }
-            else if ($this->type_mode == self::MODE_TRANSFORM)
-            {
-                if (is_string($value) || is_null($value) || is_bool($value))
-                {
-                    $value = (float)$value;
-                }
-                else
-                {
-                    throw new Database_Mysql_Exception($this->createErrorMessage('float', $value, $original_query));
-                }
-            }
+            return $value;
         }
 
-        return (string)$value;
+        switch ($this->type_mode)
+        {
+            case self::MODE_TRANSFORM:
+                if ($this->isInteger($value) || is_null($value) || is_bool($value))
+                {
+                    return (float) $value;
+                }
+
+            case self::MODE_STRICT:
+                // Если это числовой string, меняем его тип на int для вывода в тексте исключения.
+                if ($this->isInteger($value))
+                {
+                    $value += 0;
+                }
+                throw new Database_Mysql_Exception($this->createErrorMessage('double', $value, $original_query));
+        }
     }
 
     /**
@@ -984,24 +957,32 @@ class Database_Mysql
      * @param string $value
      * @return string $value
      */
-    private function escapeFieldName($value)
+    private function escapeFieldName($value, $original_query)
     {
         if (!is_string($value)) {
-            throw new Database_Mysql_Exception($this->createErrorMessage('field', $value, $this->original_query));
+            throw new Database_Mysql_Exception($this->createErrorMessage('field', $value, $original_query));
         }
 
         $new_value = '';
 
-        $replace = function(){
+        $replace = function($value){
             return '`' . str_replace("`", "``", $value) . '`';
         };
+
+        // Признак обнаружения символа текущей базы данных
+        $dot = false;
 
         if ($values = explode('.', $value)) {
             foreach ($values as $value) {
                 if ($value === '') {
-                    $new_value .= '.';
+                    if (!$dot) {
+                        $dot = true;
+                        $new_value .= '.';
+                    } else {
+                        throw new Database_Mysql_Exception('Два символа `.` идущие подряд в имени столбца или таблицы');
+                    }
                 } else {
-                    $new_value .= '`' . str_replace("`", "``", $value) . '`.';
+                    $new_value .= $replace($value) . '.';
                 }
             }
 
@@ -1009,6 +990,34 @@ class Database_Mysql
         } else {
             return $replace($value);
         }
+    }
+
+    /**
+     * Проверяет, является ли значение целым числом, умещающимся в диапазон PHP_INT_MAX.
+     *
+     * @param mixed $input
+     * @return boolean
+     */
+    private function isInteger($val)
+    {
+        if (!is_scalar($val) || is_bool($val)) {
+            return false;
+        }
+
+        if (is_float($val + 0) && ($val + 0) > PHP_INT_MAX) {
+            return false;
+        }
+
+        return is_float($val) ? false : preg_match('~^((:?+|-)?[0-9]+)$~', $val);
+    }
+
+    private function isFloat($val)
+    {
+        if (!is_scalar($val)) {
+            return false;
+        }
+
+        return is_float($val + 0);
     }
 }
 
