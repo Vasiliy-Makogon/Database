@@ -5,7 +5,7 @@
  *
  * Обёртка над объектом mysqli_result.
  */
-class Krugozor_Database_Mysql_Statement
+class Database_Mysql_Statement
 {
     /**
      * Рузультат SQL-операции в виде объекта mysqli_result.
