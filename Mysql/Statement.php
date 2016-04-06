@@ -5,7 +5,7 @@
  *
  * Обёртка над объектом mysqli_result.
  */
-class Database_Mysql_Statement
+class Krugozor_Database_Mysql_Statement
 {
     /**
      * Рузультат SQL-операции в виде объекта mysqli_result.
@@ -69,8 +69,7 @@ class Database_Mysql_Statement
     {
         $array = array();
 
-        while ($row = mysqli_fetch_assoc($this->mysqli_result))
-        {
+        while ($row = mysqli_fetch_assoc($this->mysqli_result)) {
             $array[] = $row;
         }
 
@@ -87,8 +86,7 @@ class Database_Mysql_Statement
     {
         $array = array();
 
-        while ($row = mysqli_fetch_row($this->mysqli_result))
-        {
+        while ($row = mysqli_fetch_row($this->mysqli_result)) {
             $array[] = $row;
         }
 
@@ -105,8 +103,7 @@ class Database_Mysql_Statement
     {
         $array = array();
 
-        while ($row = mysqli_fetch_object($this->mysqli_result))
-        {
+        while ($row = mysqli_fetch_object($this->mysqli_result)) {
             $array[] = $row;
         }
 

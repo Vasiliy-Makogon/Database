@@ -10,7 +10,7 @@
  * Библиотека имулирует технологию Prepared statement (или placeholders) - для формирования корректных SQL-запросов
  * (т.е. запросов, исключающих SQL-уязвимости), в строке запроса вместо значений пишутся специальные типизированные
  * маркеры - т.н. "заполнители", а сами данные передаются "позже", в качестве последующих аргументов основного метода,
- * выполняющего SQL-запрос - Database_Mysql::query($sql [, $arg, $...]):
+ * выполняющего SQL-запрос - Krugozor_Database_Mysql::query($sql [, $arg, $...]):
  *
  *     $db->query('SELECT * FROM `table` WHERE `name` = "?s" AND `age` = ?i', $_POST['name'], $_POST['age']);
  *
@@ -29,23 +29,23 @@
  * ---------------------------------------------------------------------------------------------------------------------
  *
  * Существует два режима работы класса:
- * Database_Mysql::MODE_STRICT    - строгий режим соответствия типа заполнителя и типа аргумента.
- * Database_Mysql::MODE_TRANSFORM - режим преобразования аргумента к типу заполнителя при несовпадении
+ * Krugozor_Database_Mysql::MODE_STRICT    - строгий режим соответствия типа заполнителя и типа аргумента.
+ * Krugozor_Database_Mysql::MODE_TRANSFORM - режим преобразования аргумента к типу заполнителя при несовпадении
  *                                           типа заполнителя и типа аргумента.
  *
- * Режим Database_Mysql::MODE_TRANSFORM установлен по умолчанию и является основным для большинства приложений.
+ * Режим Krugozor_Database_Mysql::MODE_TRANSFORM установлен по умолчанию и является основным для большинства приложений.
  * Если же вам нужна максимальная прозрачность операций над типами данных, производимых библиотекой Datavase,
- * установите режим Database_Mysql::MODE_STRICT.
+ * установите режим Krugozor_Database_Mysql::MODE_STRICT.
  *
  *
  *     MODE_STRICT
  *
- * В "строгом" режиме MODE_STRICT аргументы, передаваемые в основной метод Database_Mysql::query(),
+ * В "строгом" режиме MODE_STRICT аргументы, передаваемые в основной метод Krugozor_Database_Mysql::query(),
  * должны соответствовать типу заполнителя.
  * Например, попытка передать в качестве аргумента значение 55.5 или '55.5' для заполнителя целочисленного типа ?i
  * приведет к выбросу исключения:
  *
- * $db->setTypeMode(Database_Mysql::MODE_STRICT); // устанавливаем строгий режим работы
+ * $db->setTypeMode(Krugozor_Database_Mysql::MODE_STRICT); // устанавливаем строгий режим работы
  * $db->query('SELECT ?i', 55.5); // Попытка указать для заполнителя типа int значение типа double в шаблоне запроса SELECT ?i
  *
  * Это утверждение не относится к числам (целым и с плавающей точкой), заключенным в строки.
@@ -163,7 +163,7 @@
  *    $db->query('SELECT ?f FROM ?f', 'my_field', 'my_table');
  *    -> SELECT `my_field` FROM `my_table`
  */
-class Database_Mysql
+class Krugozor_Database_Mysql
 {
     /**
      * Строгий режим типизации.
@@ -278,13 +278,12 @@ class Database_Mysql
      * SET character_set_connection = charset_name;
      *
      * @param string $charset
-     * @return Database_Mysql
+     * @return Krugozor_Database_Mysql
      */
     public function setCharset($charset)
     {
-        if (!$this->mysqli->set_charset($charset))
-        {
-            throw new Database_Mysql_Exception(__METHOD__ . ': ' . $this->mysqli->error);
+        if (!$this->mysqli->set_charset($charset)) {
+            throw new Krugozor_Database_Mysql_Exception(__METHOD__ . ': ' . $this->mysqli->error);
         }
 
         return $this;
@@ -305,20 +304,18 @@ class Database_Mysql
      * Устанавливает имя используемой СУБД.
      *
      * @param string имя базы данных
-     * @return Database_Mysql
+     * @return Krugozor_Database_Mysql
      */
     public function setDatabaseName($database_name)
     {
-        if (!$database_name)
-        {
-            throw new Database_Mysql_Exception(__METHOD__ . ': Не указано имя базы данных');
+        if (!$database_name) {
+            throw new Krugozor_Database_Mysql_Exception(__METHOD__ . ': Не указано имя базы данных');
         }
 
         $this->database_name = $database_name;
 
-        if (!$this->mysqli->select_db($this->database_name))
-        {
-            throw new Database_Mysql_Exception(__METHOD__ . ': ' . $this->mysqli->error);
+        if (!$this->mysqli->select_db($this->database_name)) {
+            throw new Krugozor_Database_Mysql_Exception(__METHOD__ . ': ' . $this->mysqli->error);
         }
 
         return $this;
@@ -339,13 +336,12 @@ class Database_Mysql
      * Устанавливает режим поведения при несовпадении типа заполнителя и типа аргумента.
      *
      * @param $value int
-     * @return Database_Mysql
+     * @return Krugozor_Database_Mysql
      */
     public function setTypeMode($value)
     {
-        if (!in_array($value, array(self::MODE_STRICT, self::MODE_TRANSFORM)))
-        {
-            throw new Database_Mysql_Exception(__METHOD__ . ': Указан неизвестный тип режима');
+        if (!in_array($value, array(self::MODE_STRICT, self::MODE_TRANSFORM))) {
+            throw new Krugozor_Database_Mysql_Exception(__METHOD__ . ': Указан неизвестный тип режима');
         }
 
         $this->type_mode = $value;
@@ -358,11 +354,11 @@ class Database_Mysql
      * хранилище $this->queries.
      *
      * @param bool $value
-     * @return Database_Mysql
+     * @return Krugozor_Database_Mysql
      */
     public function setStoreQueries($value)
     {
-        $this->store_queries = (bool)$value;
+        $this->store_queries = (bool) $value;
 
         return $this;
     }
@@ -374,12 +370,11 @@ class Database_Mysql
      *
      * @param string строка SQL-запроса
      * @param mixed аргументы для заполнителей
-     * @return bool|Database_Mysql_Statement false в случае ошибки, в обратном случае объект результата
+     * @return bool|Krugozor_Database_Mysql_Statement false в случае ошибки, в обратном случае объект результата
      */
     public function query()
     {
-        if (!func_num_args())
-        {
+        if (!func_num_args()) {
             return false;
         }
 
@@ -391,19 +386,16 @@ class Database_Mysql
 
         $result = $this->mysqli->query($this->query);
 
-        if ($this->store_queries)
-        {
+        if ($this->store_queries) {
             $this->queries[$this->query] = $this->original_query;
         }
 
-        if ($result === false)
-        {
-            throw new Database_Mysql_Exception(__METHOD__ . ': ' . $this->mysqli->error . '; SQL: ' . $this->query);
+        if ($result === false) {
+            throw new Krugozor_Database_Mysql_Exception(__METHOD__ . ': ' . $this->mysqli->error . '; SQL: ' . $this->query);
         }
 
-        if (is_object($result) && $result instanceof mysqli_result)
-        {
-            return new Database_Mysql_Statement($result);
+        if (is_object($result) && $result instanceof mysqli_result) {
+            return new Krugozor_Database_Mysql_Statement($result);
         }
 
         return $result;
@@ -416,7 +408,7 @@ class Database_Mysql
      *
      * @param string
      * @param array
-     * @return bool|Database_Mysql_Statement
+     * @return bool|Krugozor_Database_Mysql_Statement
      */
     public function queryArguments($query, array $arguments=array())
     {
@@ -440,8 +432,7 @@ class Database_Mysql
      */
     public function prepare()
     {
-        if (!func_num_args())
-        {
+        if (!func_num_args()) {
             return false;
         }
 
@@ -553,13 +544,11 @@ class Database_Mysql
      */
     private function connect()
     {
-        if (!is_object($this->mysqli) || !$this->mysqli instanceof mysqli)
-        {
+        if (!is_object($this->mysqli) || !$this->mysqli instanceof mysqli) {
             $this->mysqli = @new mysqli($this->server, $this->user, $this->password, null, $this->port, $this->socket);
 
-            if ($this->mysqli->connect_error)
-            {
-                throw new Database_Mysql_Exception(__METHOD__ . ': ' . $this->mysqli->connect_error);
+            if ($this->mysqli->connect_error) {
+                throw new Krugozor_Database_Mysql_Exception(__METHOD__ . ': ' . $this->mysqli->connect_error);
             }
         }
     }
@@ -568,12 +557,11 @@ class Database_Mysql
      * Закрывает MySQL-соединение.
      *
      * @param void
-     * @return Database_Mysql
+     * @return Krugozor_Database_Mysql
      */
     private function close()
     {
-        if (is_object($this->mysqli) && $this->mysqli instanceof mysqli)
-        {
+        if (is_object($this->mysqli) && $this->mysqli instanceof mysqli) {
             @$this->mysqli->close();
         }
 
@@ -593,8 +581,7 @@ class Database_Mysql
         $var = str_replace('\\', '\\\\', $var);
         $var = $this->mysqlRealEscapeString($var);
 
-        if ($chars)
-        {
+        if ($chars) {
             $var = addCslashes($var, $chars);
         }
 
@@ -641,22 +628,19 @@ class Database_Mysql
 
         $offset = 0;
 
-        while (($posQM = mb_strpos($query, '?', $offset)) !== false)
-        {
+        while (($posQM = mb_strpos($query, '?', $offset)) !== false) {
             $offset = $posQM;
 
             $placeholder_type = mb_substr($query, $posQM + 1, 1);
 
             // Любые ситуации с нахождением знака вопроса, который не явялется заполнителем.
-            if ($placeholder_type == '' || !in_array($placeholder_type, array('i', 'd', 's', 'S', 'n', 'A', 'a', 'f')))
-            {
+            if ($placeholder_type == '' || !in_array($placeholder_type, array('i', 'd', 's', 'S', 'n', 'A', 'a', 'f'))) {
                 $offset += 1;
                 continue;
             }
 
-            if (!$args)
-            {
-                throw new Database_Mysql_Exception(
+            if (!$args) {
+                throw new Krugozor_Database_Mysql_Exception(
                     __METHOD__ . ': количество заполнителей в запросе ' . $original_query .
                     ' не соответствует переданному количеству аргументов'
                 );
@@ -664,8 +648,7 @@ class Database_Mysql
 
             $value = array_shift($args);
 
-            switch ($placeholder_type)
-            {
+            switch ($placeholder_type) {
                 // `LIKE` search escaping
                 case 'S':
                     $is_like_escaping = true;
@@ -724,19 +707,16 @@ class Database_Mysql
 
                     $next_char = mb_substr($query, $posQM + 2, 1);
 
-                    if ($next_char != '' && preg_match('#[sid\[]#u', $next_char, $matches))
-                    {
+                    if ($next_char != '' && preg_match('#[sid\[]#u', $next_char, $matches)) {
                         // Парсим выражение вида ?a[?i, "?s", "?s"]
-                        if ($next_char == '[' and ($close = mb_strpos($query, ']', $posQM+3)) !== false)
-                        {
+                        if ($next_char == '[' and ($close = mb_strpos($query, ']', $posQM+3)) !== false) {
                             // Выражение между скобками [ и ]
                             $array_parse = mb_substr($query, $posQM+3, $close - ($posQM+3));
                             $array_parse = trim($array_parse);
                             $placeholders = array_map('trim', explode(',', $array_parse));
 
-                            if (count($value) != count($placeholders))
-                            {
-                                throw new Database_Mysql_Exception('Несовпадение количества аргументов и заполнителей в массиве, запрос ' . $original_query);
+                            if (count($value) != count($placeholders)) {
+                                throw new Krugozor_Database_Mysql_Exception('Несовпадение количества аргументов и заполнителей в массиве, запрос ' . $original_query);
                             }
 
                             reset($value);
@@ -744,23 +724,18 @@ class Database_Mysql
 
                             $replacements = array();
 
-                            foreach ($placeholders as $placeholder)
-                            {
+                            foreach ($placeholders as $placeholder) {
                                 list($key, $val) = each($value);
                                 $replacements[$key] = $this->parse($placeholder, array($val), $original_query);
                             }
 
-                            if (!empty($is_associative_array))
-                            {
-                                foreach ($replacements as $key => $val)
-                                {
+                            if (!empty($is_associative_array)) {
+                                foreach ($replacements as $key => $val) {
                                     $values[] = $this->escapeFieldName($key, $original_query) . ' = ' . $val;
                                 }
 
                                 $value = implode(',', $values);
-                            }
-                            else
-                            {
+                            } else {
                                 $value = implode(', ', $replacements);
                             }
 
@@ -768,15 +743,12 @@ class Database_Mysql
                             $offset += mb_strlen($value);
                         }
                         // Выражение вида ?ai, ?as, ?ap
-                        else if (preg_match('#[sid]#u', $next_char, $matches))
-                        {
+                        else if (preg_match('#[sid]#u', $next_char, $matches)) {
                             $sql = '';
                             $parts = array();
 
-                            foreach ($value as $key => $val)
-                            {
-                                switch ($matches[0])
-                                {
+                            foreach ($value as $key => $val) {
+                                switch ($matches[0]) {
                                     case 's':
                                         $val = $this->getValueStringType($val, $original_query);
                                         $val = $this->mysqlRealEscapeString($val);
@@ -789,12 +761,9 @@ class Database_Mysql
                                         break;
                                 }
 
-                                if (!empty($is_associative_array))
-                                {
+                                if (!empty($is_associative_array)) {
                                     $parts[] = $this->escapeFieldName($key, $original_query) . ' = "' . $val . '"';
-                                }
-                                else
-                                {
+                                } else {
                                     $parts[] = '"' . $val . '"';
                                 }
                             }
@@ -805,10 +774,8 @@ class Database_Mysql
                             $query = mb_substr_replace($query, $value, $posQM, 3);
                             $offset += mb_strlen($value);
                         }
-                    }
-                    else
-                    {
-                        throw new Database_Mysql_Exception('Попытка воспользоваться заполнителем массива без указания типа данных его элементов');
+                    } else {
+                        throw new Krugozor_Database_Mysql_Exception('Попытка воспользоваться заполнителем массива без указания типа данных его элементов');
                     }
 
                     break;
@@ -829,9 +796,22 @@ class Database_Mysql
      */
     private function getValueStringType($value, $original_query)
     {
-        if (!is_string($value) && !(is_numeric($value) || is_null($value) || is_bool($value)))
-        {
-            throw new Database_Mysql_Exception($this->createErrorMessage('string', $value, $original_query));
+        if (!is_string($value) && $this->type_mode == self::MODE_STRICT) {
+            // Если это числовой string, меняем его тип для вывода в тексте исключения его типа.
+            if ($this->isInteger($value) || $this->isFloat($value)) {
+                $value += 0;
+            }
+
+            throw new Krugozor_Database_Mysql_Exception($this->createErrorMessage('string', $value, $original_query));
+        }
+
+        // меняем поведение PHP в отношении приведения bool к string
+        if (is_bool($value)) {
+            return (string) (int) $value;
+        }
+
+        if (!is_string($value) && !(is_numeric($value) || is_null($value))) {
+            throw new Krugozor_Database_Mysql_Exception($this->createErrorMessage('string', $value, $original_query));
         }
 
         return (string) $value;
@@ -848,26 +828,22 @@ class Database_Mysql
      */
     private function getValueIntType($value, $original_query)
     {
-        if ($this->isInteger($value))
-        {
+        if ($this->isInteger($value)) {
             return $value;
         }
 
-        switch ($this->type_mode)
-        {
+        switch ($this->type_mode) {
             case self::MODE_TRANSFORM:
-                if ($this->isFloat($value) || is_null($value) || is_bool($value))
-                {
+                if ($this->isFloat($value) || is_null($value) || is_bool($value)) {
                     return (int) $value;
                 }
 
             case self::MODE_STRICT:
-                // Если это числовой string, меняем его тип на float для вывода в тексте исключения.
-                if ($this->isFloat($value))
-                {
+                // Если это числовой string, меняем его тип для вывода в тексте исключения его типа.
+                if ($this->isFloat($value)) {
                     $value += 0;
                 }
-                throw new Database_Mysql_Exception($this->createErrorMessage('integer', $value, $original_query));
+                throw new Krugozor_Database_Mysql_Exception($this->createErrorMessage('integer', $value, $original_query));
         }
     }
 
@@ -885,26 +861,22 @@ class Database_Mysql
      */
     private function getValueFloatType($value, $original_query)
     {
-        if ($this->isFloat($value))
-        {
+        if ($this->isFloat($value)) {
             return $value;
         }
 
-        switch ($this->type_mode)
-        {
+        switch ($this->type_mode) {
             case self::MODE_TRANSFORM:
-                if ($this->isInteger($value) || is_null($value) || is_bool($value))
-                {
+                if ($this->isInteger($value) || is_null($value) || is_bool($value)) {
                     return (float) $value;
                 }
 
             case self::MODE_STRICT:
                 // Если это числовой string, меняем его тип на int для вывода в тексте исключения.
-                if ($this->isInteger($value))
-                {
+                if ($this->isInteger($value)) {
                     $value += 0;
                 }
-                throw new Database_Mysql_Exception($this->createErrorMessage('double', $value, $original_query));
+                throw new Krugozor_Database_Mysql_Exception($this->createErrorMessage('double', $value, $original_query));
         }
     }
 
@@ -919,12 +891,13 @@ class Database_Mysql
      */
     private function getValueNullType($value, $original_query)
     {
-        if ($value !== null)
-        {
-            if ($this->type_mode == self::MODE_STRICT)
-            {
-                throw new Database_Mysql_Exception($this->createErrorMessage('NULL', $value, $original_query));
+        if ($value !== null && $this->type_mode == self::MODE_STRICT) {
+            // Если это числовой string, меняем его тип для вывода в тексте исключения его типа.
+            if ($this->isInteger($value) || $this->isFloat($value)) {
+                $value += 0;
             }
+
+            throw new Krugozor_Database_Mysql_Exception($this->createErrorMessage('NULL', $value, $original_query));
         }
 
         return 'NULL';
@@ -943,9 +916,8 @@ class Database_Mysql
      */
     private function getValueArrayType($value, $original_query)
     {
-        if (!is_array($value))
-        {
-            throw new Database_Mysql_Exception($this->createErrorMessage('array', $value, $original_query));
+        if (!is_array($value)) {
+            throw new Krugozor_Database_Mysql_Exception($this->createErrorMessage('array', $value, $original_query));
         }
 
         return $value;
@@ -960,7 +932,7 @@ class Database_Mysql
     private function escapeFieldName($value, $original_query)
     {
         if (!is_string($value)) {
-            throw new Database_Mysql_Exception($this->createErrorMessage('field', $value, $original_query));
+            throw new Krugozor_Database_Mysql_Exception($this->createErrorMessage('field', $value, $original_query));
         }
 
         $new_value = '';
@@ -979,7 +951,7 @@ class Database_Mysql
                         $dot = true;
                         $new_value .= '.';
                     } else {
-                        throw new Database_Mysql_Exception('Два символа `.` идущие подряд в имени столбца или таблицы');
+                        throw new Krugozor_Database_Mysql_Exception('Два символа `.` идущие подряд в имени столбца или таблицы');
                     }
                 } else {
                     $new_value .= $replace($value) . '.';
@@ -1011,6 +983,12 @@ class Database_Mysql
         return is_float($val) ? false : preg_match('~^((:?+|-)?[0-9]+)$~', $val);
     }
 
+    /**
+     * Проверяет, является ли значение числом с плавающей точкой.
+     *
+     * @param mixed $input
+     * @return boolean
+     */
     private function isFloat($val)
     {
         if (!is_scalar($val)) {
@@ -1039,10 +1017,10 @@ if (!function_exists("mb_substr_replace"))
         if ($encoding == null) {
             $encoding = mb_internal_encoding();
         }
+
         if ($length == null) {
             return mb_substr($string, 0, $start, $encoding) . $replacement;
-        }
-        else {
+        } else {
             if ($length < 0) {
                 $length = mb_strlen($string, $encoding) - $start + $length;
             }
