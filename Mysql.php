@@ -980,7 +980,7 @@ class Database_Mysql
             return false;
         }
 
-        return is_float($val) ? false : preg_match('~^((:?+|-)?[0-9]+)$~', $val);
+        return is_float($val) ? false : preg_match('~^((?:\+|-)?[0-9]+)$~', $val);
     }
 
     /**
