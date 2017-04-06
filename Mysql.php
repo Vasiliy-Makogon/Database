@@ -647,6 +647,8 @@ class Database_Mysql
             }
 
             $value = array_shift($args);
+			
+			$is_associative_array = false;
 
             switch ($placeholder_type) {
                 // `LIKE` search escaping
