@@ -55,15 +55,56 @@ $data = $result->fetch_assoc();
 echo $db->getQueryString();
 ```
 
-Eng
-===
-
-Database - class for develop with database mysql, use adapter PHP mysqli and use placeholder, when each literal (argument) in string SQL query escaping without specific PHP functions like a mysqli_real_escape_string(). 
+Параметры SQL-запроса, прошедшие через систему placeholders, обрабатываются специальными функциями экранирования, в зависимости от типа заполнителей. Т.е. вам теперь нет необходимости заключать переменные в функции экранирования типа mysqli_real_escape_string() или приводить их к числовому типу, как это было раньше:
 
 ```php
-$db->query('SELECT * FROM `t` WHERE `name` = "?s" AND `age` = ?i', $_POST['name'], $_POST['age']);
+<?php
+// Раньше перед каждым запросом в СУБД мы делали
+// примерно это (а многие и до сих пор `это` не делают):
+$id = (int) $_POST['id'];
+$value = mysql_real_escape_string($_POST['value'], $link);
+$result = mysql_query("SELECT * FROM `t` WHERE `f1` = '$value' AND `f2` = $id", $link);
 ```
 
-The data passed through the placeholders, screened by special screening function, depending on the type of filler. Ie you do not need to enter variables in the screening function type _mysqli_real_escape_string($value)_ or bring them to a numeric type _(int)$value_.
+Теперь запросы стало писать легко, быстро, а главное библиотека Database полностью предотвращает любые возможные SQL-инъекции.
 
-Details, see the file <a href="https://github.com/Vasiliy-Makogon/Database/blob/master/Mysql.php">/Mysql.php</a> or website <a href="http://www.database.phpinfo.su/">database.phpinfo.su</a>.
+
+Типы заполнителей и типы параметров SQL-запроса
+---
+
+Типы заполнителей и их предназначение описываются ниже. Прежде чем знакомиться с типами заполнителей, необходимо понять как работает механизм библиотеки Database.
+
+```php
+ $db->query("SELECT ?i", 123); 
+```
+SQL-запрос после преобразования шаблона:
+```sql
+SELECT 123
+```
+В процессе исполнения этой команды библиотека проверяет, является ли аргумент `123` целочисленным значением. Заполнитель ?i представляет собой символ `?` (знак вопроса) и первую букву слова `integer`. Если аргумент действительно представляет собой целочисленный тип данных, то в шаблоне SQL-запроса заполнитель ?i заменяется на значение `123` и SQL передается на исполнение.
+
+Поскольку PHP слаботипизированный язык, то вышеописанное выражение эквивалентно нижеописанному:
+
+```php
+ $db->query("SELECT ?i", '123'); 
+ ```
+ 
+ SQL-запрос после преобразования шаблона:
+ 
+ ```sql
+ SELECT 123
+ ```
+ 
+ т.е. числа (целые и с плавающей точкой) представленные как в своем типе, так и в виде string — равнозначны с точки зрения библиотеки.
+ 
+ ### Приведение к типу заполнителя
+ 
+ ```php
+  $db->query("SELECT ?i", '123.7'); 
+  ```
+  SQL-запрос после преобразования шаблона:
+  ```sql
+  SELECT 123
+  ```
+  
+  В данном примере заполнитель целочисленного типа данных ожидает значение типа integer, а передается double. *По-умолчанию библиотека работает в режиме приведения типов, что дало в итоге приведение типа double к int*.
