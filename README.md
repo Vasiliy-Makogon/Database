@@ -238,3 +238,158 @@ SELECT concat("Hello, ", "world", "!")
 Большинство оберток под различные драйверы баз данных являются нагромождением **бесполезного кода с отвратительной архитектурой**. Их авторы, сами не понимая практической цели своих оберток, превращают их в подобие построителей запросов (sql builder), ActiveRecord библиотек и прочих ORM-решений.
 
 Библиотека Database не является ничем из перечисленных. Это лишь удобный инструмент для работы с обычным SQL в рамках СУБД MySQL — и не более!
+
+Примеры работы с библиотекой
+---
+
+```php
+// Подключаем библиотеку
+require_once('./Database/Mysql.php');
+require_once('./Database/Mysql/Exception.php');
+require_once('./Database/Mysql/Statement.php');
+
+// Подключение к СУБД, выбор кодировки и базы данных.
+$db = Database_Mysql::create('localhost', 'root', '')
+           ->setCharset('utf8')
+           ->setDatabaseName('test');
+```
+
+```php
+// Создаем таблицу пользователей с полями:
+// Первичный ключ, имя пользователя, возраст, адрес
+$db->query('
+    CREATE TABLE IF NOT EXISTS users(
+        id int unsigned not null primary key auto_increment,
+        name varchar(255),
+        age tinyint,
+        adress varchar(255)
+    )
+');
+```
+
+### Примеры для понимания сути заполнителей
+
+#### Различные варианты INSERT:
+
+##### 1
+
+```php
+// Простая вставка через заполнители разных типов
+$db->query("INSERT INTO `users` VALUES (?n, '?s', ?i, '?s')", null, 'Иоанн Грозный', '54', 'в палатах');
+```
+
+SQL-запрос после преобразования шаблона:
+
+```sql
+INSERT INTO `users` VALUES (NULL, 'Иоанн Грозный', 54, 'в палатах')
+```
+
+##### 2
+
+```php
+// Вставка значений через заполнитель ассоциативного множества типа string
+$user = array('name' => 'Пётр', 'age' => '30', 'adress' => "ООО 'Рога и Копыта'");
+
+$db->query('INSERT INTO `users` SET ?As', $user);
+```
+SQL-запрос после преобразования шаблона:
+
+```sql
+INSERT INTO `users` SET `name` = "Пётр", `age` = "30", `adress` = "ООО \'Рога и Копыта\'"
+```
+
+##### 3
+```php
+// Вставка значений через заполнитель ассоциативного множества
+// с явным указанием типа и количества аргументов
+$user = array('name' => "Д'Артаньян", 'age' => '19', 'adress' => 'замок Кастельмор');
+
+$db->query('INSERT INTO `users` SET ?A["?s", ?i, "?s"]', $user);
+```
+SQL-запрос после преобразования шаблона:
+
+```sql
+INSERT INTO `users` SET `name` = "Д\'Артаньян",`age` = 19,`adress` = "замок Кастельмор"
+```
+
+#### Различные варианты SELECT
+
+##### 1
+```php
+// Укажем некорректный числовой параметр - значение типа double
+$db->query('SELECT * FROM `users` WHERE `id` = ?i', '1.00');
+```
+SQL-запрос после преобразования шаблона:
+
+```sql
+SELECT * FROM `users` WHERE `id` = 1
+```
+
+##### 2
+```php
+ $db->query(
+    'SELECT id, adress FROM `users` WHERE `name` IN (?a["?s", "?s", "?s"])',
+    array('Василий', 'Иван', "Д'Артаньян")
+); 
+```
+SQL-запрос после преобразования шаблона:
+
+```sql
+SELECT id, adress FROM `users` WHERE `name` IN ("Василий", "Иван", "Д\'Артаньян")
+```
+
+##### 3
+```php
+// Имя базы данных, таблицы и поля передаются также, как и аргументы запроса
+// не удивляйтесь имени поля '.users.name' - это допустимый для MySql синтаксис
+$db->query(
+    'SELECT * FROM ?f WHERE ?f IN (?as) OR `id` IN (?ai)',
+    '.users', '.users.name', array('Василий'), array('2', 3.000)
+);
+```
+SQL-запрос после преобразования шаблона:
+
+```sql
+SELECT * FROM .`users` WHERE .`users`.`name` IN ("Василий") OR `id` IN ("2", "3")
+```
+
+### Некоторые возможности API
+
+```php
+// Применение метода queryArguments() - аргументы передаются в виде массива
+// Это второй, после метода query(), метод запросов в базу
+$sql = 'SELECT * FROM `users` WHERE `name` = "?s" OR `name` = "?s"';
+$arguments[] = "Василий";
+$arguments[] = "Д'Артаньян";
+$result = $db->queryArguments($sql, $arguments);
+// Получим количество рядов в результате
+$result->getNumRows(); // 2
+```
+
+##### Вставить запись, получить последнее значение автоинкрементного поля и количество задействованных рядов
+```php
+if ($db->query("INSERT INTO `users` VALUES (?n, '?s', '?i', '?s')", null, 'тест', '10', 'тест')) {
+    echo $db->getLastInsertId(); // последнее значение автоинкрементного поля
+    echo $db->getAffectedRows(); // количество задействованных рядов
+}
+```
+
+##### Получить все в виде ассоциативных массивов
+```php
+// Получить все...
+$res = $db->query('SELECT * FROM users');
+// Последовательно получать в виде ассоциативных массивов
+while ($data = $res->fetch_assoc()) {
+    print_r($data);
+}
+```
+
+##### Получить одно значение из выборки
+```php
+echo $db->query('SELECT 5 + ?d', '5.5')->getOne(); // 10.5
+```
+
+##### Получить все SQL-запросы текущего соединения
+```php
+print_r($db->getQueries());
+```
