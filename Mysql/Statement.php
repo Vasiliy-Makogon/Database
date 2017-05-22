@@ -1,7 +1,7 @@
 <?php
 /**
  * @author Vasiliy Makogon, makogon-vs@yandex.ru
- * @link http://database.phpinfo.su/
+ * @link https://github.com/Vasiliy-Makogon/Database/
  *
  * Обёртка над объектом mysqli_result.
  */
