@@ -1,7 +1,7 @@
-Rus
-===
+* Rus
+* <a href="#1">Eng</a>
 
-Что такое Database?
+Database - класс для работы с MySql
 ---
 
 Database — библиотека классов на PHP 5.3 для простой, удобной, быстрой и безопасной работы с базой данных MySql, использующая расширение PHP <a href="http://php.net/ru/mysqli">mysqli</a>.
