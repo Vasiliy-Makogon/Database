@@ -1,7 +1,6 @@
 {
     "name":"krugozor/database",
     "version":"1.0",
-	"minimum-stability": "stable",
     "require":{
         "php":">=5.3.0"
     }
