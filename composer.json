@@ -1,5 +1,5 @@
 {
-    "name":"Database/Mysql",
+    "name":"kgugozor/database",
     "version":"1.0",
     "require":{
         "php":">=5.3.0"
