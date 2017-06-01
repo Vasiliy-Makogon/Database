@@ -1,7 +1,7 @@
 {
-    "name": "krugozor/database",
-    "version": "1.0",
-	"type": "library",
+    "name":"krugozor/database",
+    "version":"1.0.0",
+	"type":"library",
 	"keywords": [
         "mysql", 
 		"mysqli",
