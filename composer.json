@@ -1,6 +1,13 @@
 {
-    "name":"krugozor/database",
-    "version":"1.0",
+    "name": "krugozor/database",
+    "version": "1.0",
+	"type": "library",
+	"keywords": [
+        "mysql", 
+		"mysqli",
+		"database",
+		"placeholder"
+	],
     "require":{
         "php":">=5.3.0"
     }
