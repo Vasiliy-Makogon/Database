@@ -121,13 +121,14 @@
  *       - i (int)
  *       - p (float)
  *       - s (string)
+ *       - f (`field`)
  *       правила преобразования и экранирования такие же, как и для одиночных скалярных аргументов (см. выше).
  *
- * ?A[?n, ?s, ?i, ?d] - заполнитель ассоциативного множества с явным указанием типа и количества аргументов,
+ * ?A[?n, ?s, ?i, ?d, ?f] - заполнитель ассоциативного множества с явным указанием типа и количества аргументов,
  *                      генерирующий последовательность пар ключ => значение.
  *                      Пример: "key_1" = "val_1", "key_2" => "val_2", ...
  *
- * ?a[?n, ?s, ?i, ?d] - заполнитель множества с явным указанием типа и количества аргументов, генерирующий
+ * ?a[?n, ?s, ?i, ?d, ?f] - заполнитель множества с явным указанием типа и количества аргументов, генерирующий
  *                      последовательность значений.
  *                      Пример: "val_1", "val_2", ...
  *
@@ -148,7 +149,7 @@
  *     'Total: "200"'
  * что было бы не ожидаемым поведением.
  *
- * Тем не менее, для перечислений ?as, ?ai, ?ap, ?As, ?Ai и ?Ap ограничивающие кавычки ставятся принудительно, т.к.
+ * Тем не менее, для перечислений ?as, ?ai, ?ad, ?As, ?Ai и ?Ap ограничивающие кавычки ставятся принудительно, т.к.
  * перечисления всегда используются в запросах, где наличие кавчек обязательно или не играет роли (а так ли это?):
  *
  *    $db->query('INSERT INTO `test` SET ?As', array('name' => 'Маша', 'age' => '23', 'adress' => 'Москва'));
@@ -709,7 +710,7 @@ class Database_Mysql
 
                     $next_char = mb_substr($query, $posQM + 2, 1);
 
-                    if ($next_char != '' && preg_match('#[sid\[]#u', $next_char, $matches)) {
+                    if ($next_char != '' && preg_match('#[fsid\[]#u', $next_char, $matches)) {
                         // Парсим выражение вида ?a[?i, "?s", "?s"]
                         if ($next_char == '[' and ($close = mb_strpos($query, ']', $posQM+3)) !== false) {
                             // Выражение между скобками [ и ]
@@ -745,7 +746,7 @@ class Database_Mysql
                             $offset += mb_strlen($value);
                         }
                         // Выражение вида ?ai, ?as, ?ap
-                        else if (preg_match('#[sid]#u', $next_char, $matches)) {
+                        else if (preg_match('#[fsid]#u', $next_char, $matches)) {
                             $sql = '';
                             $parts = array();
 
@@ -761,12 +762,23 @@ class Database_Mysql
                                     case 'd':
                                         $val = $this->getValueFloatType($val, $original_query);
                                         break;
+                                    case 'f':
+                                        $val = $this->escapeFieldName($val, $original_query);
+                                        $val = $this->mysqlRealEscapeString($val);
+                                        break;
                                 }
 
                                 if (!empty($is_associative_array)) {
-                                    $parts[] = $this->escapeFieldName($key, $original_query) . ' = "' . $val . '"';
+                                	if($matches[0]==='f'){
+                                		$parts[] = $this->escapeFieldName($key, $original_query) . ' = ' . $val;
+                                	}else{
+                                		$parts[] = $this->escapeFieldName($key, $original_query) . ' = "' . $val . '"';
+                                	}
+                                    
+                                } elseif($matches[0]==='f') {
+                                	$parts[] = $val;
                                 } else {
-                                    $parts[] = '"' . $val . '"';
+                                	$parts[] = '"' . $val . '"';
                                 }
                             }
 
