@@ -997,7 +997,13 @@ class Database_Mysql
             return false;
         }
 
-        return is_float($val + 0);
+        $type = gettype($val);
+
+        if ($type === "double") {
+            return true;
+        } else {
+            return preg_match("/^[+-]*\\d+\\.\\d+$/", $val) === 1;
+        }
     }
 }
 
