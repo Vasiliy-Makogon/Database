@@ -91,7 +91,7 @@
  *      В режиме MODE_TRANSFORM любые скалярные аргументы принудительно приводятся к типу integer
  *      согласно правилам преобразования к типу integer в PHP.
  *
- * ?d - заполнитель числа с плавающей точкой (первая буква слова point).
+ * ?d - заполнитель числа с плавающей точкой (первая буква слова double).
  *      В режиме MODE_TRANSFORM любые скалярные аргументы принудительно приводятся к типу float
  *      согласно правилам преобразования к типу float в PHP.
  *
@@ -676,7 +676,7 @@ class Database_Mysql
                     $offset += mb_strlen($value);
                     break;
 
-                // Floating point
+                // double
                 case 'd':
                     $value = $this->getValueFloatType($value, $original_query);
                     $query = mb_substr_replace($query, $value, $posQM, 2);
