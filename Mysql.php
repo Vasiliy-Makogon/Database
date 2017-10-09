@@ -978,11 +978,7 @@ class Database_Mysql
             return false;
         }
 
-        if (is_float($val + 0) && ($val + 0) > PHP_INT_MAX) {
-            return false;
-        }
-
-        return is_float($val) ? false : preg_match('~^((?:\+|-)?[0-9]+)$~', $val);
+        return $this->isFloat($val) ? false : preg_match('~^((?:\+|-)?[0-9]+)$~', $val) === 1;
     }
 
     /**
@@ -993,7 +989,7 @@ class Database_Mysql
      */
     private function isFloat($val)
     {
-        if (!is_scalar($val)) {
+        if (!is_scalar($val) || is_bool($val)) {
             return false;
         }
 
@@ -1002,7 +998,7 @@ class Database_Mysql
         if ($type === "double") {
             return true;
         } else {
-            return preg_match("/^[+-]*\\d+\\.\\d+$/", $val) === 1;
+            return preg_match("/^([+-]*\\d+)*\\.(\\d+)*$/", $val) === 1;
         }
     }
 }
