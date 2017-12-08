@@ -1,15 +1,20 @@
 {
     "name":"krugozor/database",
     "version":"1.1",
-	"type":"library",
-	"keywords": [
+        "type":"library",
+        "keywords": [
         "mysql", 
-		"mysqli",
-		"database",
-		"placeholder"
-	],
+        "mysqli",
+        "database",
+        "placeholder"
+    ],
     "require":{
         "php":">=5.3.0"
     },
-	"license": "BSD-3-Clause"
+    "auotload": {
+        "psr-4": {
+            "Krugozor\\Database\\": "src"
+        }
+    },
+    "license": "BSD-3-Clause"
 }
