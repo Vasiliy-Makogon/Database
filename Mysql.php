@@ -163,7 +163,11 @@
  *    $db->query('SELECT ?f FROM ?f', 'my_field', 'my_table');
  *    -> SELECT `my_field` FROM `my_table`
  */
-class Database_Mysql
+namespace Krugozor\Database;
+
+use Krugozor\Database\Mysql;
+
+class Mysql
 {
     /**
      * Строгий режим типизации.
