@@ -2,7 +2,7 @@
     "name":"krugozor/database",
     "type":"library",
     "keywords": [
-        "mysql", 
+        "mysql",
         "mysqli",
         "database",
         "placeholder",
@@ -12,9 +12,14 @@
     "require":{
         "php":">=5.3.0"
     },
-    "auotload": {
-        "psr-4": {
-            "Database\\": ""
+    "authors": [
+        {
+            "name": "Vasiliy Makogon"
+        }
+    ],
+    "autoload" : {
+        "psr-4" : {
+            "Krugozor\\Database\\": "src/"
         }
     },
     "license": "BSD-3-Clause",

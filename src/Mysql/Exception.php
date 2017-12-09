@@ -5,7 +5,7 @@
  */
 namespace Krugozor\Database\Mysql;
 
-class Database_Mysql_Exception extends Exception
+class Exception extends \Exception
 {
 
 }

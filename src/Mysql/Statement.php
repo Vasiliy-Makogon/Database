@@ -7,8 +7,6 @@
  */
 namespace Krugozor\Database\Mysql;
 
-use Krugozor\Database\Mysql\Exception;
-
 class Statement
 {
     /**
