@@ -14,7 +14,7 @@
     },
     "auotload": {
         "psr-4": {
-            "Krugozor\\Database\\": ""
+            "Database\\": ""
         }
     },
     "license": "BSD-3-Clause",
