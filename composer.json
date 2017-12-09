@@ -14,7 +14,8 @@
     },
     "authors": [
         {
-            "name": "Vasiliy Makogon"
+            "name": "Vasiliy Makogon",
+            "email": "makogon-vs@yandex.ru"
         }
     ],
     "autoload" : {
@@ -22,6 +23,5 @@
             "Krugozor\\Database\\": "src/"
         }
     },
-    "license": "BSD-3-Clause",
-    "minimum-stability": "dev"
+    "license": "Apache-2.0"
 }
