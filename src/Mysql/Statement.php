@@ -19,7 +19,7 @@ class Statement
     /**
      * @param mysqli_result
      */
-    public function __construct(mysqli_result $mysqli_result)
+    public function __construct(\mysqli_result $mysqli_result)
     {
         $this->mysqli_result = $mysqli_result;
     }

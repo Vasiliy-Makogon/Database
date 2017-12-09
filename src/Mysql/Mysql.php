@@ -10,7 +10,7 @@
  * Библиотека имулирует технологию Prepared statement (или placeholders) - для формирования корректных SQL-запросов
  * (т.е. запросов, исключающих SQL-уязвимости), в строке запроса вместо значений пишутся специальные типизированные
  * маркеры - т.н. "заполнители", а сами данные передаются "позже", в качестве последующих аргументов основного метода,
- * выполняющего SQL-запрос - Database_Mysql::query($sql [, $arg, $...]):
+ * выполняющего SQL-запрос - Mysql::query($sql [, $arg, $...]):
  *
  *     $db->query('SELECT * FROM `table` WHERE `name` = "?s" AND `age` = ?i', $_POST['name'], $_POST['age']);
  *
@@ -29,23 +29,23 @@
  * ---------------------------------------------------------------------------------------------------------------------
  *
  * Существует два режима работы класса:
- * Database_Mysql::MODE_STRICT    - строгий режим соответствия типа заполнителя и типа аргумента.
- * Database_Mysql::MODE_TRANSFORM - режим преобразования аргумента к типу заполнителя при несовпадении
+ * Mysql::MODE_STRICT    - строгий режим соответствия типа заполнителя и типа аргумента.
+ * Mysql::MODE_TRANSFORM - режим преобразования аргумента к типу заполнителя при несовпадении
  *                                           типа заполнителя и типа аргумента.
  *
- * Режим Database_Mysql::MODE_TRANSFORM установлен по умолчанию и является основным для большинства приложений.
+ * Режим Mysql::MODE_TRANSFORM установлен по умолчанию и является основным для большинства приложений.
  * Если же вам нужна максимальная прозрачность операций над типами данных, производимых библиотекой Datavase,
- * установите режим Database_Mysql::MODE_STRICT.
+ * установите режим Mysql::MODE_STRICT.
  *
  *
  *     MODE_STRICT
  *
- * В "строгом" режиме MODE_STRICT аргументы, передаваемые в основной метод Database_Mysql::query(),
+ * В "строгом" режиме MODE_STRICT аргументы, передаваемые в основной метод Mysql::query(),
  * должны соответствовать типу заполнителя.
  * Например, попытка передать в качестве аргумента значение 55.5 или '55.5' для заполнителя целочисленного типа ?i
  * приведет к выбросу исключения:
  *
- * $db->setTypeMode(Database_Mysql::MODE_STRICT); // устанавливаем строгий режим работы
+ * $db->setTypeMode(Mysql::MODE_STRICT); // устанавливаем строгий режим работы
  * $db->query('SELECT ?i', 55.5); // Попытка указать для заполнителя типа int значение типа double в шаблоне запроса SELECT ?i
  *
  * Это утверждение не относится к числам (целым и с плавающей точкой), заключенным в строки.
@@ -280,7 +280,7 @@ class Mysql
      * SET character_set_connection = charset_name;
      *
      * @param string $charset
-     * @return Database_Mysql
+     * @return Mysql
      */
     public function setCharset($charset)
     {
@@ -306,7 +306,7 @@ class Mysql
      * Устанавливает имя используемой СУБД.
      *
      * @param string имя базы данных
-     * @return Database_Mysql
+     * @return Mysql
      */
     public function setDatabaseName($database_name)
     {
@@ -338,7 +338,7 @@ class Mysql
      * Устанавливает режим поведения при несовпадении типа заполнителя и типа аргумента.
      *
      * @param $value int
-     * @return Database_Mysql
+     * @return Mysql
      */
     public function setTypeMode($value)
     {
@@ -356,7 +356,7 @@ class Mysql
      * хранилище $this->queries.
      *
      * @param bool $value
-     * @return Database_Mysql
+     * @return Mysql
      */
     public function setStoreQueries($value)
     {
@@ -410,7 +410,7 @@ class Mysql
      *
      * @param string
      * @param array
-     * @return bool|Database_Mysql_Statement
+     * @return bool|Mysql_Statement
      */
     public function queryArguments($query, array $arguments=array())
     {
@@ -547,7 +547,7 @@ class Mysql
     private function connect()
     {
         if (!is_object($this->mysqli) || !$this->mysqli instanceof mysqli) {
-            $this->mysqli = @new mysqli($this->server, $this->user, $this->password, null, $this->port, $this->socket);
+            $this->mysqli = @new \mysqli($this->server, $this->user, $this->password, null, $this->port, $this->socket);
 
             if ($this->mysqli->connect_error) {
                 throw new Exception(__METHOD__ . ': ' . $this->mysqli->connect_error);
@@ -559,7 +559,7 @@ class Mysql
      * Закрывает MySQL-соединение.
      *
      * @param void
-     * @return Database_Mysql
+     * @return Mysql
      */
     private function close()
     {
