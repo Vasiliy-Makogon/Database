@@ -396,7 +396,7 @@ class Mysql
             throw new Exception(__METHOD__ . ': ' . $this->mysqli->error . '; SQL: ' . $this->query);
         }
 
-        if (is_object($result) && $result instanceof mysqli_result) {
+        if (is_object($result) && $result instanceof \mysqli_result) {
             return new Statement($result);
         }
 
