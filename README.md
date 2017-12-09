@@ -39,16 +39,20 @@ Database — библиотека классов на PHP 5.3 для прост�
 
 ```php
 <?php
-// Соединение с СУБД и получение объекта Database_Mysql
-// Database_Mysql - "обертка" над "родным" объектом mysqli
-$db = Database_Mysql::create("localhost", "root", "password")
+// Предположим, что установили библиотеку через composer 
+require  './vendor/autoload.php';
+// Алиас для краткости 
+use Krugozor\Database\Mysql\Mysql as Mysql;
+
+// Соединение с СУБД и получение объекта-"обертки" над "родным" mysqli
+$db = Mysql::create("localhost", "root", "password")
       // Выбор базы данных
       ->setDatabaseName("test")
       // Выбор кодировки
       ->setCharset("utf8");
 
-// Получение объекта результата Database_Mysql_Statement
-// Database_Mysql_Statement - "обертка" над "родным" объектом mysqli_result
+// Получение объекта результата Statement
+// Statement - "обертка" над "родным" объектом mysqli_result
 $result = $db->query("SELECT * FROM `users` WHERE `name` = '?s' AND `age` = ?i", "Василий", 30);
 
 // Получаем данные (в виде ассоциативного массива, например)
@@ -286,13 +290,13 @@ SELECT concat("Hello, ", "world", "!")
 ---
 
 ```php
-// Подключаем библиотеку
-require_once('./Database/Mysql.php');
-require_once('./Database/Mysql/Exception.php');
-require_once('./Database/Mysql/Statement.php');
+// Предположим, что установили библиотеку через composer 
+require  './vendor/autoload.php';
+// Алиас для краткости 
+use Krugozor\Database\Mysql\Mysql as Mysql;
 
 // Подключение к СУБД, выбор кодировки и базы данных.
-$db = Database_Mysql::create('localhost', 'root', '')
+$db = Mysql::create('localhost', 'root', '')
            ->setCharset('utf8')
            ->setDatabaseName('test');
 ```
