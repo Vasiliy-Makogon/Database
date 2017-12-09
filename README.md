@@ -4,8 +4,11 @@
 Что такое Database?
 ---
 
-Database — библиотека классов на PHP 5.3 для простой, удобной, быстрой и безопасной работы с базой данных MySql, использующая расширение PHP <a href="http://php.net/ru/mysqli">mysqli</a> (<a href="https://packagist.org/packages/krugozor/database">ссылка на packagist.org</a>).
+Database — библиотека классов на PHP 5.3 для простой, удобной, быстрой и безопасной работы с базой данных MySql, использующая расширение PHP <a href="http://php.net/ru/mysqli">mysqli</a>.
 
+Получение библиотеки
+---
+Вы можете <a href="https://github.com/Vasiliy-Makogon/Database/archive/master.zip">скачать её архивом</a>, клонировать с данного сайта или загрузить через composer <a href="https://packagist.org/packages/krugozor/database">ссылка на packagist.org</a>
 
 Зачем нужен самописный класс для MySql, если в PHP есть абстракция PDO и расширение mysqli?
 ---
