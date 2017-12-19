@@ -1,6 +1,9 @@
 Получение библиотеки
 ---
-Вы можете <a href="https://github.com/Vasiliy-Makogon/Database/archive/master.zip">скачать её архивом</a>, клонировать с данного сайта или загрузить через composer <a href="https://packagist.org/packages/krugozor/database">ссылка на packagist.org</a>
+Вы можете <a href="https://github.com/Vasiliy-Makogon/Database/archive/master.zip">скачать её архивом</a>, клонировать с данного сайта или загрузить через composer (<a href="https://packagist.org/packages/krugozor/database">ссылка на packagist.org</a>):
+<pre>
+php composer.phar require krugozor/database
+</pre>
 
 
 Что такое Database?
