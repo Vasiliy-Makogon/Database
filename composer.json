@@ -1,29 +1,29 @@
 {
-    "name":"krugozor/database",
-    "description": "Database — библиотека классов на >=PHP5.3.0 для простой, удобной, быстрой и безопасной работы с базой данных MySql, использующая расширение PHP mysqli.",
-    "type":"library",
-    "minimum-stability": "dev",
-    "keywords": [
-        "mysql",
-        "mysqli",
-        "database",
-        "placeholder",
-        "placeholders",
-        "prepare statement"
-    ],
-    "require":{
-        "php":">=5.3.0"
-    },
-    "authors": [
-        {
-            "name": "Vasiliy Makogon",
-            "email": "makogon-vs@yandex.ru"
-        }
-    ],
-    "autoload" : {
-        "psr-4" : {
-            "Krugozor\\Database\\": "src/"
-        }
-    },
-    "license": "Apache-2.0"
+  "name": "krugozor/database",
+  "description": "Database — библиотека классов на >=PHP5.3.0 для простой, удобной, быстрой и безопасной работы с базой данных MySql, использующая расширение PHP mysqli.",
+  "type": "library",
+  "minimum-stability": "dev",
+  "keywords": [
+    "mysql",
+    "mysqli",
+    "database",
+    "placeholder",
+    "placeholders",
+    "prepare statement"
+  ],
+  "require": {
+    "php": ">=5.3.0"
+  },
+  "authors": [
+    {
+      "name": "Vasiliy Makogon",
+      "email": "makogon-vs@yandex.ru"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Krugozor\\Database\\": "src/"
+    }
+  },
+  "license": "Apache-2.0"
 }
