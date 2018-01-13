@@ -1,6 +1,6 @@
 {
     "name":"krugozor/database",
-	"description": "Database — библиотека классов на >=PHP5.3.0 для простой, удобной, быстрой и безопасной работы с базой данных MySql, использующая расширение PHP mysqli.",
+    "description": "Database — библиотека классов на >=PHP5.3.0 для простой, удобной, быстрой и безопасной работы с базой данных MySql, использующая расширение PHP mysqli.",
     "type":"library",
     "keywords": [
         "mysql",
