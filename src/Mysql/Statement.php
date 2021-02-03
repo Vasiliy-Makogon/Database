@@ -115,14 +115,15 @@ class Statement
     /**
      * Возвращает значение первого поля результирующей таблицы.
      *
-     * @param void
-     * @return string
+     * @return mixed|null
      */
     public function getOne()
     {
-        $row = mysqli_fetch_row($this->mysqli_result);
+        if (($row = mysqli_fetch_row($this->mysqli_result)) !== null) {
+            return $row[0];
+        }
 
-        return $row[0];
+        return null;
     }
 
     /**
