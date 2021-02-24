@@ -1,4 +1,7 @@
 <?php
+
+namespace Krugozor\Database\Mysql;
+
 /**
  * @author Vasiliy Makogon, makogon-vs@yandex.ru
  * @link https://github.com/Vasiliy-Makogon/Database/
@@ -163,9 +166,6 @@
  *    $db->query('SELECT ?f FROM ?f', 'my_field', 'my_table');
  *    -> SELECT `my_field` FROM `my_table`
  */
-
-namespace Krugozor\Database\Mysql;
-
 class Mysql
 {
     /**
