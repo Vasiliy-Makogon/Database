@@ -1,6 +1,6 @@
 <?php
 
-namespace Krugozor\Database\Mysql;
+namespace Krugozor\Database;
 
 /**
  * @author Vasiliy Makogon, makogon-vs@yandex.ru
@@ -11,11 +11,11 @@ namespace Krugozor\Database\Mysql;
 class Statement
 {
     /**
-     * Рузультат SQL-операции в виде объекта mysqli_result.
+     * Рузультат SQL-операции в виде объекта \mysqli_result.
      *
-     * @var mysqli_result
+     * @var \mysqli_result
      */
-    private $mysqli_result = null;
+    private $mysqli_result;
 
     /**
      * @param mysqli_result
@@ -29,7 +29,6 @@ class Statement
      * Извлекает результирующий ряд в виде ассоциативного массива.
      *
      * @see mysqli_fetch_assoc
-     * @param void
      * @return array
      */
 
@@ -42,7 +41,6 @@ class Statement
      * Извлекает результирующий ряд в виде массива.
      *
      * @see mysqli_fetch_row
-     * @param void
      * @return array
      */
     public function fetchRow()
@@ -54,8 +52,7 @@ class Statement
      * Извлекает результирующий ряд в виде объекта.
      *
      * @see mysqli_fetch_object
-     * @param void
-     * @return stdClass
+     * @return \stdClass
      */
     public function fetchObject()
     {
@@ -65,7 +62,6 @@ class Statement
     /**
      * Возвращает результат в виде массива ассоциативных массивов.
      *
-     * @param void
      * @return array
      */
     public function fetchAssocArray()
@@ -82,7 +78,6 @@ class Statement
     /**
      * Возвращает результат в виде массива массивов.
      *
-     * @param void
      * @return array
      */
     public function fetchRowArray()
@@ -97,9 +92,8 @@ class Statement
     }
 
     /**
-     * Возвращает результат в виде массива объектов.
+     * Возвращает результат в виде массива объектов \stdClass.
      *
-     * @param void
      * @return array
      */
     public function fetchObjectArray()
@@ -116,12 +110,11 @@ class Statement
     /**
      * Возвращает значение первого поля результирующей таблицы.
      *
-     * @param void
      * @return string
      */
     public function getOne()
     {
-        if (($row = mysqli_fetch_row($this->mysqli_result)) !== null) {
+        if ($row = mysqli_fetch_row($this->mysqli_result)) {
             return $row[0];
         }
 
@@ -133,7 +126,6 @@ class Statement
      * Эта команда верна только для операторов SELECT.
      *
      * @see mysqli_num_rows
-     * @param void
      * @return int
      */
     public function getNumRows()
@@ -144,7 +136,6 @@ class Statement
     /**
      * Возвращает объект результата mysqli_result.
      *
-     * @param void
      * @return \mysqli_result
      */
     public function getResult()
@@ -155,7 +146,6 @@ class Statement
     /**
      * Освобождает память занятую результатами запроса.
      *
-     * @param void
      * @return void
      */
     public function free()
