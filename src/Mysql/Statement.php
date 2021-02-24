@@ -3,8 +3,9 @@
  * @author Vasiliy Makogon, makogon-vs@yandex.ru
  * @link https://github.com/Vasiliy-Makogon/Database/
  *
- * Обёртка над объектом mysqli_result.
+ * Обёртка над объектом \mysqli_result.
  */
+
 namespace Krugozor\Database\Mysql;
 
 class Statement
@@ -12,7 +13,7 @@ class Statement
     /**
      * Рузультат SQL-операции в виде объекта mysqli_result.
      *
-     * @var mysqli_result
+     * @var \mysqli_result
      */
     private $mysqli_result = null;
 
@@ -32,7 +33,7 @@ class Statement
      * @return array
      */
 
-    public function fetch_assoc()
+    public function fetchAssoc()
     {
         return mysqli_fetch_assoc($this->mysqli_result);
     }
@@ -44,7 +45,7 @@ class Statement
      * @param void
      * @return array
      */
-    public function fetch_row()
+    public function fetchRow()
     {
         return mysqli_fetch_row($this->mysqli_result);
     }
@@ -53,10 +54,9 @@ class Statement
      * Извлекает результирующий ряд в виде объекта.
      *
      * @see mysqli_fetch_object
-     * @param void
-     * @return stdClass
+     * @return \stdClass
      */
-    public function fetch_object()
+    public function fetchObject()
     {
         return mysqli_fetch_object($this->mysqli_result);
     }
@@ -64,10 +64,9 @@ class Statement
     /**
      * Возвращает результат в виде массива ассоциативных массивов.
      *
-     * @param void
      * @return array
      */
-    public function fetch_assoc_array()
+    public function fetchAssocArray()
     {
         $array = array();
 
@@ -81,10 +80,9 @@ class Statement
     /**
      * Возвращает результат в виде массива массивов.
      *
-     * @param void
      * @return array
      */
-    public function fetch_row_array()
+    public function fetchRowArray()
     {
         $array = array();
 
@@ -96,12 +94,11 @@ class Statement
     }
 
     /**
-     * Возвращает результат в виде массива объектов.
+     * Возвращает результат в виде массива объектов stdClass.
      *
-     * @param void
      * @return array
      */
-    public function fetch_object_array()
+    public function fetchObjectArray()
     {
         $array = array();
 
@@ -115,7 +112,6 @@ class Statement
     /**
      * Возвращает значение первого поля результирующей таблицы.
      *
-     * @param void
      * @return string
      */
     public function getOne()
@@ -130,7 +126,6 @@ class Statement
      * Эта команда верна только для операторов SELECT.
      *
      * @see mysqli_num_rows
-     * @param void
      * @return int
      */
     public function getNumRows()
@@ -141,8 +136,7 @@ class Statement
     /**
      * Возвращает объект результата mysqli_result.
      *
-     * @param void
-     * @return mysqli_result
+     * @return \mysqli_result
      */
     public function getResult()
     {
@@ -152,7 +146,6 @@ class Statement
     /**
      * Освобождает память занятую результатами запроса.
      *
-     * @param void
      * @return void
      */
     public function free()
