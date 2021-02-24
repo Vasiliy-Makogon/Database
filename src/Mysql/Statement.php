@@ -5,6 +5,7 @@
  *
  * Обёртка над объектом mysqli_result.
  */
+
 namespace Krugozor\Database\Mysql;
 
 class Statement
