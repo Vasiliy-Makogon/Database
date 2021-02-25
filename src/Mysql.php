@@ -517,19 +517,32 @@ class Mysql
     /**
      * Возвращает оригинальный объект mysqli.
      *
-     * @return mysqli
+     * @return \mysqli
      */
     public function getMysqli()
     {
         return $this->mysqli;
     }
 
-    /**
-     * Закрывает текущее соедениение.
-     */
     public function __destruct()
     {
         $this->close();
+    }
+
+    public function __sleep()
+    {
+        return [
+            'server', 'user', 'password', 'port', 'socket',
+            'database_name',
+            'type_mode', 'store_queries', 'query', 'original_query'
+        ];
+    }
+
+    public function __wakeup()
+    {
+        $this
+            ->connect()
+            ->setDatabaseName($this->database_name);
     }
 
     /**
@@ -554,7 +567,8 @@ class Mysql
     /**
      * Устанавливает соеденение с базой данных.
      *
-     * @return void
+     * @return $this
+     * @throws MySqlException
      */
     private function connect()
     {
@@ -572,6 +586,8 @@ class Mysql
                 throw new MySqlException(__METHOD__ . ': ' . $this->mysqli->connect_error);
             }
         }
+
+        return $this;
     }
 
     /**
