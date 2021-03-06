@@ -761,14 +761,12 @@ class Mysql
                                 );
                             }
 
-                            reset($value);
                             reset($placeholders);
 
                             $replacements = array();
 
-                            foreach ($placeholders as $placeholder) {
-                                list($key, $val) = each($value);
-                                $replacements[$key] = $this->parse($placeholder, array($val), $original_query);
+                            foreach ($placeholders as $key => $placeholder) {
+                                $replacements[$key] = $this->parse($placeholder, array($value[$key]), $original_query);
                             }
 
                             if (!empty($is_associative_array)) {
