@@ -428,7 +428,7 @@ if ($db->query("INSERT INTO `users` VALUES (?n, '?s', '?i', '?s')", null, 'те�
 // Получить все...
 $res = $db->query('SELECT * FROM users');
 // Последовательно получать в виде ассоциативных массивов
-while (($data = $res->fetch_assoc()) !== null) {
+while (($data = $res->fetchAssoc()) !== null) {
     print_r($data);
 }
 ```
