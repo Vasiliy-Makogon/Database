@@ -53,8 +53,8 @@ Database — библиотека классов на PHP 5.3 для прост�
 <?php
 // Предположим, что установили библиотеку через composer 
 require  './vendor/autoload.php';
-// Алиас для краткости 
-use Krugozor\Database\Mysql\Mysql as Mysql;
+
+use Krugozor\Database\Mysql;
 
 // Соединение с СУБД и получение объекта-"обертки" над "родным" mysqli
 $db = Mysql::create("localhost", "root", "password")
