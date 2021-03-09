@@ -304,8 +304,8 @@ SELECT concat("Hello, ", "world", "!")
 ```php
 // Предположим, что установили библиотеку через composer 
 require  './vendor/autoload.php';
-// Алиас для краткости 
-use Krugozor\Database\Mysql\Mysql as Mysql;
+
+use Krugozor\Database\Mysql\;
 
 // Подключение к СУБД, выбор кодировки и базы данных.
 $db = Mysql::create('localhost', 'root', '')
