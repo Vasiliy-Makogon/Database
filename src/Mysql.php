@@ -761,12 +761,15 @@ class Mysql
                                 );
                             }
 
+                            reset($value);
                             reset($placeholders);
 
                             $replacements = array();
 
-                            foreach ($placeholders as $key => $placeholder) {
-                                $replacements[$key] = $this->parse($placeholder, array($value[$key]), $original_query);
+                            $i = 0;
+                            foreach ($value as $key => $val) {
+                                $replacements[$key] = $this->parse($placeholders[$i], array($val), $original_query);
+                                $i++;
                             }
 
                             if (!empty($is_associative_array)) {
@@ -1080,4 +1083,17 @@ if (!function_exists("mb_substr_replace"))
                 mb_substr($string, $start + $length, mb_strlen($string, $encoding), $encoding);
         }
     }
+}
+
+function legacy_each($array){
+    $key = key($array);
+    $value = current($array);
+    $each = is_null($key) ? false : [
+        1        => $value,
+        'value'    => $value,
+        0        => $key,
+        'key'    => $key,
+    ];
+    next($array);
+    return $each;
 }
