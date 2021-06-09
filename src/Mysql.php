@@ -1084,16 +1084,3 @@ if (!function_exists("mb_substr_replace"))
         }
     }
 }
-
-function legacy_each($array){
-    $key = key($array);
-    $value = current($array);
-    $each = is_null($key) ? false : [
-        1        => $value,
-        'value'    => $value,
-        0        => $key,
-        'key'    => $key,
-    ];
-    next($array);
-    return $each;
-}
