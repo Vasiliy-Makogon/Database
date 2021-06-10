@@ -790,7 +790,7 @@ class Mysql
                             );
                             $offset += mb_strlen($value);
                         }
-                        // Выражение вида ?ai, ?as, ?ap
+                        // Выражение вида ?ai, ?as, ?ad
                         else if (preg_match('#[sid]#u', $next_char, $matches)) {
                             $sql = '';
                             $parts = array();
