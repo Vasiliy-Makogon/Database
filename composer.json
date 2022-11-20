@@ -6,16 +6,18 @@
   "keywords": [
     "mysql",
     "mysqli",
+    "ext-mysqli",
     "database",
     "placeholder",
     "placeholders",
     "prepare statement",
     "mysql class",
     "mysql database class",
-    "mysql database php class"
+    "mysql database php class",
   ],
   "require": {
-    "php": ">=5.3.0"
+    "php": ">=8.0",
+    "ext-mysqli": "*"
   },
   "authors": [
     {
@@ -27,6 +29,5 @@
     "psr-4": {
       "Krugozor\\Database\\": "src/"
     }
-  },
-  "license": "Apache-2.0"
+  }
 }
