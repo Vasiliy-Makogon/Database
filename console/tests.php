@@ -132,8 +132,6 @@ try {
     }
     echo PHP_EOL;
 
-
-
     // Получим все исполненные запросы текущего соединения:
     print_r($db->getQueries());
     echo PHP_EOL;
@@ -141,5 +139,5 @@ try {
     // Совершим ошибку - будет исключение типа MySqlException.
     $db->query('SELECT * FROM `not_exists_table`');
 } catch (MySqlException $e) {
-    echo $e->getMessage() . PHP_EOL;
+    echo  "Исключение: " . $e->getMessage() . PHP_EOL;
 }
