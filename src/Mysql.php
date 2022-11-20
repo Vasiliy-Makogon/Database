@@ -5,166 +5,6 @@ namespace Krugozor\Database;
 /**
  * @author Vasiliy Makogon, makogon-vs@yandex.ru
  * @link https://github.com/Vasiliy-Makogon/Database/
- *
- * ---------------------------------------------------------------------------------------------------------------------
- *     Библиотека для удобной и безопасной работы с СУБД MySql на базе расширения PHP mysqli.
- * ---------------------------------------------------------------------------------------------------------------------
- *
- * Библиотека имулирует технологию Prepared statement (или placeholders) - для формирования корректных SQL-запросов
- * (т.е. запросов, исключающих SQL-уязвимости), в строке запроса вместо значений пишутся специальные типизированные
- * маркеры - т.н. "заполнители", а сами данные передаются "позже", в качестве последующих аргументов основного метода,
- * выполняющего SQL-запрос - Mysql::query($sql [, $arg, $...]):
- *
- *     $db->query('SELECT * FROM `table` WHERE `name` = "?s" AND `age` = ?i', $_POST['name'], $_POST['age']);
- *
- * Аргументы SQL-запроса, прошедшие через систему placeholders данного класса, экранируются специальными функциями
- * экранирования, в зависимости от типа заполнителей. Т.е. вам теперь нет необходимости заключать переменные в функции
- * экранирования типа mysqli_real_escape_string($value) или приводить их к числовому типу через (int)$value.
- *
- * Кроме того, данный класс позволяет:
- * - получать "подготовленный" SQL-запрос для отладки, т.е. запрос с реальными значениями, что невозможно сделать
- * используя "сырые" драйверы PHP типа PDO.
- * - получать список всех запросов выполненных в рамках одного подключения к Mysql-серверу.
- *
- *
- * ---------------------------------------------------------------------------------------------------------------------
- *    Режимы работы.
- * ---------------------------------------------------------------------------------------------------------------------
- *
- * Существует два режима работы класса:
- * Mysql::MODE_STRICT    - строгий режим соответствия типа заполнителя и типа аргумента.
- * Mysql::MODE_TRANSFORM - режим преобразования аргумента к типу заполнителя при несовпадении
- *                                           типа заполнителя и типа аргумента.
- *
- * Режим Mysql::MODE_TRANSFORM установлен по умолчанию и является основным для большинства приложений.
- * Если же вам нужна максимальная прозрачность операций над типами данных, производимых библиотекой Datavase,
- * установите режим Mysql::MODE_STRICT.
- *
- *
- *     MODE_STRICT
- *
- * В "строгом" режиме MODE_STRICT аргументы, передаваемые в основной метод Mysql::query(),
- * должны соответствовать типу заполнителя.
- * Например, попытка передать в качестве аргумента значение 55.5 или '55.5' для заполнителя целочисленного типа ?i
- * приведет к выбросу исключения:
- *
- * $db->setTypeMode(Mysql::MODE_STRICT); // устанавливаем строгий режим работы
- * $db->query('SELECT ?i', 55.5); // Попытка указать для заполнителя типа int значение типа double в шаблоне запроса SELECT ?i
- *
- * Это утверждение не относится к числам (целым и с плавающей точкой), заключенным в строки.
- * С точки зрения библиотеки, строка '123' и значение 123 являются типом int.
- *
- *
- *     MODE_TRANSFORM
- *
- * Режим MODE_TRANSFORM является "щадящим" режимом и при несоответствии типа заполнителя и типа аргумента не генерирует
- * исключение, а пытается преобразовать аргумент к нужному типу заполнителя посредством самого языка PHP.
- *
- * Допускаются следующие преобразования:
- *
- * К типу int приводятся (заполнитель ?i):
- *     - числа с плавающей точкой, представленные как строка или тип double
- *     - bool
- *     - null
- *
- * К типу double приводятся (заполнитель ?d):
- *     - целые числа, представленные как строка или тип int
- *     - bool
- *     - null
- *
- * К типу string приводятся (заполнитель ?s):
- *     - значение boolean TRUE преобразуется в строку "1", а значение FALSE преобразуется в "" (пустую строку).
- *     - значение типа numeric преобразуется в строку согласно правилам преобразования, определенным языком.
- *     - NULL преобразуется в пустую строку.
- *
- * К типу null приводятся (заполнитель ?n):
- *     - любые аргументы
- *
- * Для массивов, объектов и ресурсов преобразования не допускаются.
- *
- *
- * ---------------------------------------------------------------------------------------------------------------------
- *    Типы маркеров-заполнителей
- * ---------------------------------------------------------------------------------------------------------------------
- *
- * ?f - заполнитель имени таблицы или поля (первая буква слова field).
- *      Данный заполнитель предназначен для случаев, когда имя таблицы или поля передается в запроос через аргумент.
- *
- * ?i - заполнитель целого числа (первая буква слова integer).
- *      В режиме MODE_TRANSFORM любые скалярные аргументы принудительно приводятся к типу integer
- *      согласно правилам преобразования к типу integer в PHP.
- *
- * ?d - заполнитель числа с плавающей точкой (первая буква слова double).
- *      В режиме MODE_TRANSFORM любые скалярные аргументы принудительно приводятся к типу float
- *      согласно правилам преобразования к типу float в PHP.
- *
- * ?s - заполнитель строкового типа (первая буква слова string).
- *      В режиме MODE_TRANSFORM любые скалярные аргументы принудительно приводятся к типу string
- *      согласно правилам преобразования к типу string в PHP
- *      и экранируются с помощью функции PHP mysqli_real_escape_string().
- *
- * ?S - заполнитель строкового типа для подстановки в SQL-оператор LIKE (первая буква слова string).
- *      В режиме MODE_TRANSFORM Любые скалярные аргументы принудительно приводятся к типу string
- *      согласно правилам преобразования к типу string в PHP
- *      и экранируются с помощью функции PHP mysqli_real_escape_string() + экранирование спецсимволов,
- *      используемых в операторе LIKE (%_).
- *
- * ?n - заполнитель NULL типа (первая буква слова null).
- *      В режиме MODE_TRANSFORM любые аргументы игнорируются, заполнители заменяются на строку `NULL` в SQL запросе.
- *
- * ?A* - заполнитель ассоциативного множества для ассоциативного массива-аргумента, генерирующий последовательность
- *       пар ключ => значение.
- *       Пример: "key_1" = "val_1", "key_2" = "val_2", ...
- *
- * ?a* - заполнитель множества из простого (или также ассоциативного) массива-аргумента, генерирующий последовательность
- *       значений.
- *       Пример: "val_1", "val_2", ...
- *
- *       где * после маркера заполнителя - один из типов:
- *       - i (int)
- *       - p (float)
- *       - s (string)
- *       правила преобразования и экранирования такие же, как и для одиночных скалярных аргументов (см. выше).
- *
- * ?A[?n, ?s, ?i, ?d] - заполнитель ассоциативного множества с явным указанием типа и количества аргументов,
- *                      генерирующий последовательность пар ключ => значение.
- *                      Пример: "key_1" = "val_1", "key_2" => "val_2", ...
- *
- * ?a[?n, ?s, ?i, ?d] - заполнитель множества с явным указанием типа и количества аргументов, генерирующий
- *                      последовательность значений.
- *                      Пример: "val_1", "val_2", ...
- *
- *
- * ---------------------------------------------------------------------------------------------------------------------
- *    Ограничивающие кавчки
- * ---------------------------------------------------------------------------------------------------------------------
- *
- * Данный класс при формировании SQL-запроса НЕ занимается проставлением ограничивающих кавычек для одиночных
- * заполнителей скалярного типа, таких как ?i, ?d и ?s. Это сделано по идеологическим соображениям,
- * автоподстановка кавычек может стать ограничением для возможностей SQL.
- * Например, выражение
- *     $db->query('SELECT "Total: ?s"', '200');
- * вернёт строку
- *     'Total: 200'
- * Если бы кавычки, ограничивающие строковой литерал, ставились бы автоматически,
- * то вышеприведённое условие вернуло бы строку
- *     'Total: "200"'
- * что было бы не ожидаемым поведением.
- *
- * Тем не менее, для перечислений ?as, ?ai, ?ap, ?As, ?Ai и ?Ap ограничивающие кавычки ставятся принудительно, т.к.
- * перечисления всегда используются в запросах, где наличие кавчек обязательно или не играет роли (а так ли это?):
- *
- *    $db->query('INSERT INTO `test` SET ?As', array('name' => 'Маша', 'age' => '23', 'adress' => 'Москва'));
- *    -> INSERT INTO test SET `name` = "Маша", `age` = "23", `adress` = "Москва"
- *
- *    $db->query('SELECT * FROM table WHERE field IN (?as)', array('55', '12', '132'));
- *    -> SELECT * FROM table WHERE field IN ("55", "12", "132")
- *
- * Также исключения составляют заполнители типа ?f, предназначенные для передачи в запрос имен таблиц и полей.
- * Аргумент заполнителя ?f всегда обрамляется обратными кавычками (`):
- *
- *    $db->query('SELECT ?f FROM ?f', 'my_field', 'my_table');
- *    -> SELECT `my_field` FROM `my_table`
  */
 class Mysql
 {
@@ -180,7 +20,7 @@ class Mysql
      *
      * @var int
      */
-    const MODE_STRICT = 1;
+    public const MODE_STRICT = 1;
 
     /**
      * Режим преобразования.
@@ -196,68 +36,56 @@ class Mysql
      *
      * @var int
      */
-    const MODE_TRANSFORM = 2;
+    public const MODE_TRANSFORM = 2;
 
     /**
-     * Режим работы инстанцированного объекта.
+     * Режим работы объекта.
      * См. описание констант self::MODE_STRICT и self::MODE_TRANSFORM.
      *
      * @var int
      */
-    protected $type_mode = self::MODE_TRANSFORM;
+    protected int $type_mode = self::MODE_TRANSFORM;
 
-    /**
-     * @var string
-     */
-    protected $server;
+    /** @var string|null */
+    protected ?string $server;
 
-    /**
-     * @var string
-     */
-    protected $user;
+    /** @var string|null */
+    protected ?string $user;
 
-    /**
-     * @var string
-     */
-    protected $password;
+    /** @var string|null */
+    protected ?string $password;
 
-    /**
-     * @var string
-     */
-    protected $port;
+    /** @var int|string|null */
+    protected int|string|null $port;
 
-    /**
-     * @var string
-     */
-    protected $socket;
+    /** @var int|string|null */
+    protected int|string|null $socket;
 
     /**
      * Имя текущей БД.
      *
      * @var string
      */
-    protected $database_name;
+    protected string $database_name;
 
     /**
-     * Стандартный объект соединения сервером \mysqli.
-     *
-     * @var \mysqli
+     * @var \mysqli|null
      */
-    protected $mysqli;
+    protected ?\mysqli $mysqli = null;
 
     /**
-     * Строка последнего SQL-запроса до преобразования.
+     * Строка последнего SQL-запроса ДО преобразования.
      *
      * @var string
      */
-    private $original_query;
+    private string $original_query;
 
     /**
-     * Строка последнего SQL-запроса после преобразования.
+     * Строка последнего SQL-запроса ПОСЛЕ преобразования.
      *
      * @var string
      */
-    private $query;
+    private string $query;
 
     /**
      * Массив со всеми запросами, которые были выполнены объектом.
@@ -265,26 +93,31 @@ class Mysql
      *
      * @var array
      */
-    private $queries = array();
+    private array $queries = [];
 
     /**
      * Накапливать ли в хранилище $this->queries исполненные запросы.
      *
      * @var bool
      */
-    private $store_queries = true;
+    private bool $store_queries = false;
 
     /**
-     * Создает инстанс данного класса.
-     *
-     * @param string $server имя сервера
-     * @param string $username имя пользователя
-     * @param string $password пароль
-     * @param string $port порт
-     * @param string $socket сокет
+     * @param string|null $server
+     * @param string|null $username
+     * @param string|null $password
+     * @param int|string|null $port
+     * @param int|string|null $socket
+     * @return Mysql
+     * @throws MySqlException
      */
-    public static function create($server, $username, $password, $port = null, $socket = null)
-    {
+    public static function create(
+        string $server = null,
+        string $username = null,
+        string $password = null,
+        int|string|null $port = null,
+        int|string|null $socket = null
+    ): Mysql {
         return new self($server, $username, $password, $port, $socket);
     }
 
@@ -297,8 +130,9 @@ class Mysql
      *
      * @param string $charset
      * @return Mysql
+     * @throws MySqlException
      */
-    public function setCharset($charset)
+    public function setCharset($charset): Mysql
     {
         if (!$this->mysqli->set_charset($charset)) {
             throw new MySqlException(__METHOD__ . ': ' . $this->mysqli->error);
@@ -313,7 +147,7 @@ class Mysql
      * @param void
      * @return string
      */
-    public function getCharset()
+    public function getCharset(): string
     {
         return $this->mysqli->character_set_name();
     }
@@ -323,8 +157,9 @@ class Mysql
      *
      * @param string имя базы данных
      * @return Mysql
+     * @throws MySqlException
      */
-    public function setDatabaseName($database_name)
+    public function setDatabaseName($database_name): Mysql
     {
         if (!$database_name) {
             throw new MySqlException(__METHOD__ . ': Не указано имя базы данных');
@@ -344,7 +179,7 @@ class Mysql
      *
      * @return string
      */
-    public function getDatabaseName()
+    public function getDatabaseName(): string
     {
         return $this->database_name;
     }
@@ -352,16 +187,17 @@ class Mysql
     /**
      * Устанавливает режим поведения при несовпадении типа заполнителя и типа аргумента.
      *
-     * @param $value int|string
+     * @param int $type
      * @return Mysql
+     * @throws MySqlException
      */
-    public function setTypeMode($value)
+    public function setTypeMode(int $type): Mysql
     {
-        if (!in_array((int)$value, array(self::MODE_STRICT, self::MODE_TRANSFORM))) {
+        if (!in_array($type, array(self::MODE_STRICT, self::MODE_TRANSFORM))) {
             throw new MySqlException(__METHOD__ . ': Указан неизвестный тип режима');
         }
 
-        $this->type_mode = $value;
+        $this->type_mode = $type;
 
         return $this;
     }
@@ -373,9 +209,9 @@ class Mysql
      * @param bool $value
      * @return Mysql
      */
-    public function setStoreQueries($value)
+    public function setStoreQueries(bool $value): Mysql
     {
-        $this->store_queries = (bool) $value;
+        $this->store_queries = $value;
 
         return $this;
     }
@@ -388,7 +224,7 @@ class Mysql
      * @param string строка SQL-запроса
      * @param mixed аргументы для заполнителей
      * @return bool|Statement false в случае ошибки, в обратном случае объект результата Statement
-     * @throws Exception
+     * @throws MySqlException
      */
     public function query()
     {
@@ -428,7 +264,7 @@ class Mysql
      * @param array
      * @return bool|Statement
      */
-    public function queryArguments($query, array $arguments=array())
+    public function queryArguments($query, array $arguments = [])
     {
         array_unshift($arguments, $query);
 
@@ -447,6 +283,7 @@ class Mysql
      * @param string SQL-запрос или его часть
      * @param mixed аргументы заполнителей
      * @return boolean|string
+     * @throws MySqlException
      */
     public function prepare()
     {
@@ -479,7 +316,7 @@ class Mysql
      *
      * @return string
      */
-    public function getOriginalQueryString()
+    public function getOriginalQueryString(): string
     {
         return $this->original_query;
     }
@@ -489,7 +326,7 @@ class Mysql
      *
      * @return string
      */
-    public function getQueryString()
+    public function getQueryString(): string
     {
         return $this->query;
     }
@@ -499,7 +336,7 @@ class Mysql
      *
      * @return array
      */
-    public function getQueries()
+    public function getQueries(): array
     {
         return $this->queries;
     }
@@ -509,7 +346,7 @@ class Mysql
      *
      * @return int
      */
-    public function getLastInsertId()
+    public function getLastInsertId(): int
     {
         return $this->mysqli->insert_id;
     }
@@ -519,7 +356,7 @@ class Mysql
      *
      * @return \mysqli
      */
-    public function getMysqli()
+    public function getMysqli(): \mysqli
     {
         return $this->mysqli;
     }
@@ -529,6 +366,9 @@ class Mysql
         $this->close();
     }
 
+    /**
+     * @return string[]
+     */
     public function __sleep()
     {
         return [
@@ -538,6 +378,9 @@ class Mysql
         ];
     }
 
+    /**
+     * @throws MySqlException
+     */
     public function __wakeup()
     {
         $this
@@ -546,16 +389,21 @@ class Mysql
     }
 
     /**
-     * @param string $server
-     * @param string $username
-     * @param string $password
-     * @param string $port
-     * @param string $socket
-     * @return void
+     * @param string|null $server
+     * @param string|null $user
+     * @param string|null $password
+     * @param int|string|null $port
+     * @param int|string|null $socket
+     * @throws MySqlException
      */
-    private function __construct($server, $user, $password, $port, $socket)
-    {
-        $this->server   = $server;
+    private function __construct(
+        string $server = null,
+        string $user = null,
+        string $password = null,
+        int|string|null $port = null,
+        int|string|null $socket = null
+    ) {
+        $this->server = $server;
         $this->user = $user;
         $this->password = $password;
         $this->port = $port;
@@ -565,12 +413,12 @@ class Mysql
     }
 
     /**
-     * Устанавливает соеденение с базой данных.
+     * Устанавливает соединение с базой данных.
      *
      * @return $this
      * @throws MySqlException
      */
-    private function connect()
+    private function connect(): Mysql
     {
         if (!is_object($this->mysqli) || !$this->mysqli instanceof \mysqli) {
             $this->mysqli = @new \mysqli(
@@ -593,35 +441,34 @@ class Mysql
     /**
      * Закрывает MySQL-соединение.
      *
-     * @return Mysql
+     * @return void
      */
-    private function close()
+    private function close(): void
     {
         if (is_object($this->mysqli) && $this->mysqli instanceof \mysqli) {
             $this->mysqli->close();
         }
 
-        return $this;
     }
 
     /**
      * Возвращает экранированную строку для placeholder-а поиска LIKE (?S).
      *
-     * @param string $var строка в которой необходимо экранировать спец. символы
+     * @param string $string строка в которой необходимо экранировать спец. символы
      * @param string $chars набор символов, которые так же необходимо экранировать.
      *                      По умолчанию экранируются следующие символы: `'"%_`.
      * @return string
      */
-    private function escapeLike($var, $chars = "%_")
+    private function escapeLike(string $string, string $chars = "%_"): string
     {
-        $var = str_replace('\\', '\\\\', $var);
-        $var = $this->mysqlRealEscapeString($var);
+        $string = str_replace('\\', '\\\\', $string);
+        $string = $this->mysqlRealEscapeString($string);
 
         if ($chars) {
-            $var = addCslashes($var, $chars);
+            $string = addCslashes($string, $chars);
         }
 
-        return $var;
+        return $string;
     }
 
     /**
@@ -632,7 +479,7 @@ class Mysql
      * @param string
      * @return string
      */
-    private function mysqlRealEscapeString($value)
+    private function mysqlRealEscapeString($value): string
     {
         return $this->mysqli->real_escape_string($value);
     }
@@ -645,10 +492,14 @@ class Mysql
      * @param string $original_query оригинальный SQL-запрос
      * @return string
      */
-    private function createErrorMessage($type, $value, $original_query)
+    private function createErrorMessage($type, $value, $original_query): string
     {
-        return "Попытка указать для заполнителя типа $type значение типа " .
-                gettype($value) . " в шаблоне запроса $original_query";
+        return sprintf(
+            "Попытка указать для заполнителя типа '%s' значение типа '%s' в шаблоне запроса %s",
+            $type,
+            gettype($value),
+            $original_query
+        );
     }
 
     /**
@@ -656,16 +507,17 @@ class Mysql
      *
      * @param string $query SQL запрос или его часть (в случае парсинга условия в скобках [])
      * @param array $args аргументы заполнителей
-     * @param string $original_query "оригинальный", полный SQL-запрос
+     * @param string|null $original_query "оригинальный", полный SQL-запрос
      * @return string SQL запрос для исполнения
+     * @throws MySqlException
      */
-    private function parse($query, array $args, $original_query=null)
+    private function parse(string $query, array $args, ?string $original_query = null): string
     {
-        $original_query = $original_query ? $original_query : $query;
+        $original_query = $original_query ?? $query;
 
         $offset = 0;
 
-        while (($posQM = mb_strpos($query, '?', $offset)) !== false) {
+        while (($posQM = \mb_strpos($query, '?', $offset)) !== false) {
             $offset = $posQM;
 
             $placeholder_type = mb_substr($query, $posQM + 1, 1);
@@ -840,11 +692,11 @@ class Mysql
      * либо кидает исключение.
      *
      * @param mixed $value
-     * @param string $original_query оригинальный SQL запрос
-     * @throws Exception
+     * @param string $original_query
      * @return string
+     * @throws MySqlException
      */
-    private function getValueStringType($value, $original_query)
+    private function getValueStringType(mixed $value, string $original_query): string
     {
         if (!is_string($value) && $this->type_mode == self::MODE_STRICT) {
             // Если это числовой string, меняем его тип для вывода в тексте исключения его типа.
@@ -852,7 +704,9 @@ class Mysql
                 $value += 0;
             }
 
-            throw new MySqlException($this->createErrorMessage('string', $value, $original_query));
+            throw new MySqlException(
+                $this->createErrorMessage('string', $value, $original_query)
+            );
         }
 
         // меняем поведение PHP в отношении приведения bool к string
@@ -861,7 +715,9 @@ class Mysql
         }
 
         if (!is_string($value) && !(is_numeric($value) || is_null($value))) {
-            throw new MySqlException($this->createErrorMessage('string', $value, $original_query));
+            throw new MySqlException(
+                $this->createErrorMessage('string', $value, $original_query)
+            );
         }
 
         return (string) $value;
@@ -872,11 +728,11 @@ class Mysql
      * приведенного к типу int, либо кидает исключение.
      *
      * @param mixed $value
-     * @param string $original_query оригинальный SQL запрос
-     * @throws Exception
-     * @return string
+     * @param string $original_query
+     * @return int|mixed
+     * @throws MySqlException
      */
-    private function getValueIntType($value, $original_query)
+    private function getValueIntType(mixed $value, string $original_query)
     {
         if ($this->isInteger($value)) {
             return $value;
@@ -893,7 +749,9 @@ class Mysql
                 if ($this->isFloat($value)) {
                     $value += 0;
                 }
-                throw new MySqlException($this->createErrorMessage('integer', $value, $original_query));
+                throw new MySqlException(
+                    $this->createErrorMessage('integer', $value, $original_query)
+                );
         }
     }
 
@@ -905,11 +763,11 @@ class Mysql
      * Для установки необходимого разделителя дробной части используйте setlocale().
      *
      * @param mixed $value
-     * @param string $original_query оригинальный SQL запрос
-     * @throws Exception
-     * @return string
+     * @param string $original_query
+     * @return float|mixed
+     * @throws MySqlException
      */
-    private function getValueFloatType($value, $original_query)
+    private function getValueFloatType(mixed $value, string $original_query)
     {
         if ($this->isFloat($value)) {
             return $value;
@@ -926,7 +784,9 @@ class Mysql
                 if ($this->isInteger($value)) {
                     $value += 0;
                 }
-                throw new MySqlException($this->createErrorMessage('double', $value, $original_query));
+                throw new MySqlException(
+                    $this->createErrorMessage('double', $value, $original_query)
+                );
         }
     }
 
@@ -935,11 +795,11 @@ class Mysql
      * либо кидает исключение.
      *
      * @param mixed $value
-     * @param string $original_query оригинальный SQL запрос
-     * @throws Exception
+     * @param string $original_query
      * @return string
+     * @throws MySqlException
      */
-    private function getValueNullType($value, $original_query)
+    private function getValueNullType(mixed $value, string $original_query)
     {
         if ($value !== null && $this->type_mode == self::MODE_STRICT) {
             // Если это числовой string, меняем его тип для вывода в тексте исключения его типа.
