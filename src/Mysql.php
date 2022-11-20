@@ -2,6 +2,9 @@
 
 namespace Krugozor\Database;
 
+use mysqli;
+use mysqli_result;
+
 /**
  * @author Vasiliy Makogon, makogon-vs@yandex.ru
  * @link https://github.com/Vasiliy-Makogon/Database/
@@ -69,9 +72,9 @@ class Mysql
     protected string $database_name;
 
     /**
-     * @var \mysqli|null
+     * @var mysqli|null
      */
-    protected ?\mysqli $mysqli = null;
+    protected ?mysqli $mysqli = null;
 
     /**
      * Строка последнего SQL-запроса ДО преобразования.
@@ -132,10 +135,12 @@ class Mysql
      * @return Mysql
      * @throws MySqlException
      */
-    public function setCharset($charset): Mysql
+    public function setCharset(string $charset): Mysql
     {
         if (!$this->mysqli->set_charset($charset)) {
-            throw new MySqlException(__METHOD__ . ': ' . $this->mysqli->error);
+            throw new MySqlException(sprintf(
+                '%s: %s', __METHOD__, $this->mysqli->error
+            ));
         }
 
         return $this;
@@ -159,16 +164,20 @@ class Mysql
      * @return Mysql
      * @throws MySqlException
      */
-    public function setDatabaseName($database_name): Mysql
+    public function setDatabaseName(string $database_name): Mysql
     {
         if (!$database_name) {
-            throw new MySqlException(__METHOD__ . ': Не указано имя базы данных');
+            throw new MySqlException(sprintf(
+                '%s: Не указано имя базы данных', __METHOD__
+            ));
         }
 
         $this->database_name = $database_name;
 
         if (!$this->mysqli->select_db($this->database_name)) {
-            throw new MySqlException(__METHOD__ . ': ' . $this->mysqli->error);
+            throw new MySqlException(sprintf(
+                '%s: %s', __METHOD__, $this->mysqli->error
+            ));
         }
 
         return $this;
@@ -194,7 +203,9 @@ class Mysql
     public function setTypeMode(int $type): Mysql
     {
         if (!in_array($type, array(self::MODE_STRICT, self::MODE_TRANSFORM))) {
-            throw new MySqlException(__METHOD__ . ': Указан неизвестный тип режима');
+            throw new MySqlException(sprintf(
+                '%s: Указан неизвестный тип режима', __METHOD__
+            ));
         }
 
         $this->type_mode = $type;
@@ -221,18 +232,20 @@ class Mysql
      * Принимает обязательный параметр - SQL-запрос и, в случае наличия,
      * любое количество аргументов - значения заполнителей.
      *
-     * @param string строка SQL-запроса
-     * @param mixed аргументы для заполнителей
-     * @return bool|Statement false в случае ошибки, в обратном случае объект результата Statement
+     * @param mixed ...$args строка SQL-запроса и аргументы для заполнителей
+     * @return bool|Statement В случае успешного выполнения запросов, которые создают набор результатов,
+     *         таких как SELECT, SHOW, DESCRIBE или EXPLAIN, метод вернёт объект Statement.
+     *         Для остальных успешных запросов метод вернёт true.
+     *         При ошибке последует исключение MySqlException
      * @throws MySqlException
      */
-    public function query()
+    public function query(mixed ...$args): bool|Statement
     {
         if (!func_num_args()) {
-            return false;
+            throw new MySqlException(sprintf(
+                '%s: Не передан SQL-запрос', __METHOD__
+            ));
         }
-
-        $args = func_get_args();
 
         $query = $this->original_query = array_shift($args);
 
@@ -245,10 +258,15 @@ class Mysql
         }
 
         if ($result === false) {
-            throw new MySqlException(__METHOD__ . ': ' . $this->mysqli->error . '; SQL: ' . $this->query);
+            throw new MySqlException(sprintf(
+                '%s: %s; SQL: %s',
+                __METHOD__,
+                $this->mysqli->error,
+                $this->query
+            ));
         }
 
-        if (is_object($result) && $result instanceof \mysqli_result) {
+        if (is_object($result) && $result instanceof mysqli_result) {
             return new Statement($result);
         }
 
@@ -262,9 +280,12 @@ class Mysql
      *
      * @param string
      * @param array
-     * @return bool|Statement
+     * @return bool|Statement В случае успешного выполнения запросов, которые создают набор результатов,
+     *         таких как SELECT, SHOW, DESCRIBE или EXPLAIN, метод вернёт объект Statement.
+     *         Для остальных успешных запросов метод вернёт true.
+     *         При ошибке последует исключение MySqlException
      */
-    public function queryArguments($query, array $arguments = [])
+    public function queryArguments($query, array $arguments = []): Statement|bool
     {
         array_unshift($arguments, $query);
 
@@ -280,18 +301,18 @@ class Mysql
      * Результат:
      *     WHERE `name` = "Василий" OR `id` IN(1, 2)
      *
-     * @param string SQL-запрос или его часть
-     * @param mixed аргументы заполнителей
-     * @return boolean|string
+     * @param mixed ...$args SQL-запрос или его часть и аргументы для заполнителей
+     * @return string
      * @throws MySqlException
      */
-    public function prepare()
+    public function prepare(mixed ...$args): string
     {
         if (!func_num_args()) {
-            return false;
+            throw new MySqlException(sprintf(
+                '%s: Не передан SQL-запрос', __METHOD__
+            ));
         }
 
-        $args = func_get_args();
         $query = array_shift($args);
 
         return $this->parse($query, $args);
@@ -303,10 +324,9 @@ class Mysql
      * Если последним запросом был DELETE без оператора WHERE,
      * все записи таблицы будут удалены, но функция возвратит ноль.
      *
-     * @see mysqli_affected_rows
      * @return int
      */
-    public function getAffectedRows()
+    public function getAffectedRows(): int
     {
         return $this->mysqli->affected_rows;
     }
@@ -354,9 +374,9 @@ class Mysql
     /**
      * Возвращает оригинальный объект mysqli.
      *
-     * @return \mysqli
+     * @return mysqli
      */
-    public function getMysqli(): \mysqli
+    public function getMysqli(): mysqli
     {
         return $this->mysqli;
     }
@@ -420,8 +440,8 @@ class Mysql
      */
     private function connect(): Mysql
     {
-        if (!is_object($this->mysqli) || !$this->mysqli instanceof \mysqli) {
-            $this->mysqli = @new \mysqli(
+        if (!is_object($this->mysqli) || !$this->mysqli instanceof mysqli) {
+            $this->mysqli = @new mysqli(
                 $this->server,
                 $this->user,
                 $this->password,
@@ -431,7 +451,9 @@ class Mysql
             );
 
             if ($this->mysqli->connect_error) {
-                throw new MySqlException(__METHOD__ . ': ' . $this->mysqli->connect_error);
+                throw new MySqlException(sprintf(
+                    '%s: %s', __METHOD__, $this->mysqli->connect_error
+                ));
             }
         }
 
@@ -445,7 +467,7 @@ class Mysql
      */
     private function close(): void
     {
-        if (is_object($this->mysqli) && $this->mysqli instanceof \mysqli) {
+        if (is_object($this->mysqli) && $this->mysqli instanceof mysqli) {
             $this->mysqli->close();
         }
 
@@ -492,7 +514,7 @@ class Mysql
      * @param string $original_query оригинальный SQL-запрос
      * @return string
      */
-    private function createErrorMessage($type, $value, $original_query): string
+    private function createErrorMessage(string $type, mixed $value, string $original_query): string
     {
         return sprintf(
             "Попытка указать для заполнителя типа '%s' значение типа '%s' в шаблоне запроса %s",
@@ -508,7 +530,7 @@ class Mysql
      * @param string $query SQL запрос или его часть (в случае парсинга условия в скобках [])
      * @param array $args аргументы заполнителей
      * @param string|null $original_query "оригинальный", полный SQL-запрос
-     * @return string SQL запрос для исполнения
+     * @return string SQL запрос для исполнения СУБД
      * @throws MySqlException
      */
     private function parse(string $query, array $args, ?string $original_query = null): string
@@ -517,22 +539,24 @@ class Mysql
 
         $offset = 0;
 
-        while (($posQM = \mb_strpos($query, '?', $offset)) !== false) {
+        while (($posQM = mb_strpos($query, '?', $offset)) !== false) {
             $offset = $posQM;
 
             $placeholder_type = mb_substr($query, $posQM + 1, 1);
 
-            // Любые ситуации с нахождением знака вопроса, который не явялется заполнителем.
+            // Любые ситуации с нахождением знака вопроса, который не является заполнителем.
             if ($placeholder_type == '' || !in_array($placeholder_type, array('i', 'd', 's', 'S', 'n', 'A', 'a', 'f'))) {
                 $offset += 1;
                 continue;
             }
 
             if (!$args) {
-                throw new MySqlException(
-                    __METHOD__ . ': количество заполнителей в запросе ' . $original_query .
-                    ' не соответствует переданному количеству аргументов'
-                );
+                throw new MySqlException(sprintf(
+                     '%s: количество заполнителей в запросе %s не соответствует ' .
+                     'переданному количеству аргументов',
+                    __METHOD__,
+                     $original_query
+                ));
             }
 
             $value = array_shift($args);
@@ -607,10 +631,10 @@ class Mysql
                             $placeholders = array_map('trim', explode(',', $array_parse));
 
                             if (count($value) != count($placeholders)) {
-                                throw new MySqlException(
-                                    'Несовпадение количества аргументов и заполнителей в массиве, запрос ' .
+                                throw new MySqlException(sprintf(
+                                    'Несовпадение количества аргументов и заполнителей в массиве, запрос: %s',
                                     $original_query
-                                );
+                                ));
                             }
 
                             reset($value);
@@ -625,6 +649,7 @@ class Mysql
                             }
 
                             if (!empty($is_associative_array)) {
+                                $values = [];
                                 foreach ($replacements as $key => $val) {
                                     $values[] = $this->escapeFieldName($key, $original_query) . ' = ' . $val;
                                 }
@@ -644,7 +669,6 @@ class Mysql
                         }
                         // Выражение вида ?ai, ?as, ?ad
                         else if (preg_match('#[sid]#u', $next_char, $matches)) {
-                            $sql = '';
                             $parts = array();
 
                             foreach ($value as $key => $val) {
@@ -729,10 +753,10 @@ class Mysql
      *
      * @param mixed $value
      * @param string $original_query
-     * @return int|mixed
+     * @return mixed
      * @throws MySqlException
      */
-    private function getValueIntType(mixed $value, string $original_query)
+    private function getValueIntType(mixed $value, string $original_query): mixed
     {
         if ($this->isInteger($value)) {
             return $value;
@@ -764,10 +788,10 @@ class Mysql
      *
      * @param mixed $value
      * @param string $original_query
-     * @return float|mixed
+     * @return mixed
      * @throws MySqlException
      */
-    private function getValueFloatType(mixed $value, string $original_query)
+    private function getValueFloatType(mixed $value, string $original_query): mixed
     {
         if ($this->isFloat($value)) {
             return $value;
@@ -799,7 +823,7 @@ class Mysql
      * @return string
      * @throws MySqlException
      */
-    private function getValueNullType(mixed $value, string $original_query)
+    private function getValueNullType(mixed $value, string $original_query): string
     {
         if ($value !== null && $this->type_mode == self::MODE_STRICT) {
             // Если это числовой string, меняем его тип для вывода в тексте исключения его типа.
@@ -807,7 +831,9 @@ class Mysql
                 $value += 0;
             }
 
-            throw new MySqlException($this->createErrorMessage('NULL', $value, $original_query));
+            throw new MySqlException(
+                $this->createErrorMessage('NULL', $value, $original_query)
+            );
         }
 
         return 'NULL';
@@ -821,13 +847,15 @@ class Mysql
      *
      * @param mixed $value
      * @param string $original_query
-     * @throws Exception
      * @return array
+     * @throws MySqlException
      */
-    private function getValueArrayType($value, $original_query)
+    private function getValueArrayType(mixed $value, string $original_query): array
     {
         if (!is_array($value)) {
-            throw new MySqlException($this->createErrorMessage('array', $value, $original_query));
+            throw new MySqlException(
+                $this->createErrorMessage('array', $value, $original_query)
+            );
         }
 
         return $value;
@@ -836,13 +864,17 @@ class Mysql
     /**
      * Экранирует имя поля таблицы или столбца.
      *
-     * @param string $value
-     * @return string $value
+     * @param mixed $value
+     * @param string $original_query
+     * @return string
+     * @throws MySqlException
      */
-    private function escapeFieldName($value, $original_query)
+    private function escapeFieldName(mixed $value, string $original_query): string
     {
         if (!is_string($value)) {
-            throw new MySqlException($this->createErrorMessage('field', $value, $original_query));
+            throw new MySqlException(
+                $this->createErrorMessage('field', $value, $original_query)
+            );
         }
 
         $new_value = '';
@@ -861,7 +893,9 @@ class Mysql
                         $dot = true;
                         $new_value .= '.';
                     } else {
-                        throw new MySqlException('Два символа `.` идущие подряд в имени столбца или таблицы');
+                        throw new MySqlException(
+                            'Два символа `.` идущие подряд в имени столбца или таблицы'
+                        );
                     }
                 } else {
                     $new_value .= $replace($value) . '.';
@@ -877,54 +911,48 @@ class Mysql
     /**
      * Проверяет, является ли значение целым числом, умещающимся в диапазон PHP_INT_MAX.
      *
-     * @param mixed $input
+     * @param mixed $val
      * @return boolean
      */
-    private function isInteger($val)
+    private function isInteger(mixed $val): bool
     {
         if (!is_scalar($val) || is_bool($val)) {
             return false;
         }
 
-        return $this->isFloat($val) ? false : preg_match('~^((?:\+|-)?[0-9]+)$~', $val) === 1;
+        return !$this->isFloat($val) && preg_match('~^((?:\+|-)?[0-9]+)$~', $val) === 1;
     }
 
     /**
      * Проверяет, является ли значение числом с плавающей точкой.
      *
-     * @param mixed $input
+     * @param mixed $val
      * @return boolean
      */
-    private function isFloat($val)
+    private function isFloat(mixed $val): bool
     {
         if (!is_scalar($val) || is_bool($val)) {
             return false;
         }
 
-        $type = gettype($val);
-
-        if ($type === "double") {
-            return true;
-        } else {
-            return preg_match("/^([+-]*\\d+)*\\.(\\d+)*$/", $val) === 1;
-        }
+        return gettype($val) === "double" || preg_match("/^([+-]*\\d+)*\\.(\\d+)*$/", $val) === 1;
     }
 }
 
-/**
- * Заменяет часть строки string, начинающуюся с символа с порядковым номером start
- * и (необязательной) длиной length, строкой replacement и возвращает результат.
- *
- * @param string $string
- * @param string $replacement
- * @param string $start
- * @param string $length
- * @param string $encoding
- * @return string
- */
 if (!function_exists("mb_substr_replace"))
 {
-    function mb_substr_replace($string, $replacement, $start, $length = null, $encoding = null)
+    /**
+     * Заменяет часть строки string, начинающуюся с символа с порядковым номером start
+     * и (необязательной) длиной length, строкой replacement и возвращает результат.
+     *
+     * @param $string
+     * @param $replacement
+     * @param $start
+     * @param null $length
+     * @param null $encoding
+     * @return string
+     */
+    function mb_substr_replace($string, $replacement, $start, $length = null, $encoding = null): string
     {
         if ($encoding == null) {
             $encoding = mb_internal_encoding();

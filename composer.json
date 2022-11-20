@@ -17,7 +17,8 @@
   ],
   "require": {
     "php": ">=8.0",
-    "ext-mysqli": "*"
+    "ext-mysqli": "*",
+    "ext-mbstring": "*"
   },
   "authors": [
     {
