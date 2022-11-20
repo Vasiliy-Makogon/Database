@@ -13,7 +13,7 @@
     "prepare statement",
     "mysql class",
     "mysql database class",
-    "mysql database php class",
+    "mysql database php class"
   ],
   "require": {
     "php": ">=8.0",
