@@ -24,9 +24,9 @@ class Statement
     /**
      * Извлекает результирующий ряд в виде ассоциативного массива.
      *
-     * @return array
+     * @return array|null
      */
-    public function fetchAssoc(): array
+    public function fetchAssoc(): ?array
     {
         return $this->mysqli_result->fetch_assoc();
     }
@@ -34,9 +34,9 @@ class Statement
     /**
      * Извлекает результирующий ряд в виде массива.
      *
-     * @return array
+     * @return array|null
      */
-    public function fetchRow(): array
+    public function fetchRow(): ?array
     {
         return $this->mysqli_result->fetch_row();
     }
@@ -44,9 +44,9 @@ class Statement
     /**
      * Извлекает результирующий ряд в виде объекта.
      *
-     * @return \stdClass
+     * @return \stdClass|null
      */
-    public function fetchObject(): \stdClass
+    public function fetchObject(): ?\stdClass
     {
         return $this->mysqli_result->fetch_object();
     }
