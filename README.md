@@ -39,7 +39,7 @@ The main disadvantages of all libraries for working with the mysql database in P
       syntax error. To find an error, you need to "see" the SQL query itself, which the database "swears" at, with
       parameters substituted into its body. Those. to have formed high-grade SQL. If the developer is using PDO,
       with prepared queries, then it's... IMPOSSIBLE! There are no most convenient mechanisms for this in
-      native libraries [NOT PROVIDED] (https://qna.habr.com/q/22669).
+      native libraries [NOT PROVIDED](https://qna.habr.com/q/22669).
       It remains either to pervert, or to climb into the database log.
 
 Solution: `krugozor/database` is a class for working with MySql
