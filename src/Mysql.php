@@ -65,6 +65,42 @@ class Mysql
     protected int|string|null $socket;
 
     /**
+     * Сообщения об ошибках на разных языках.
+     *
+     * @var array|array[]
+     */
+    protected array $i18n_error_messages = [
+        'en' => [
+            0 => '%s: error setting character encoding: %s',
+            1 => '%s: database name not specified',
+            2 => '%s: database selection error: %s',
+            3 => '%s: unknown mode specified for library "%s", use allowed modes: "%s"',
+            4 => '%s: no SQL query passed',
+            5 => '%s: SQL query execution error: %s; SQL: %s',
+            6 => 'attempted to set placeholder type "%s" to value type "%s" in query template "%s". ' .
+                'You can enable the tolerant behavior of the library if you don\'t need strong argument typing.',
+            7 => '%s: number of placeholders in query "%s" does not match number of arguments passed',
+            8 => 'Mismatch in the number of arguments and placeholders in the array, query: "%s"',
+            9 => 'Attempting to use an array placeholder without specifying the data type of its elements',
+            10 => 'Two consecutive `.` characters in a column or table name',
+        ],
+        'ru' => [
+            0 => '%s: ошибка установки кодировки: %s',
+            1 => '%s: не указано имя базы данных',
+            2 => '%s: ошибка выбора базы данных: %s',
+            3 => '%s: указан неизвестный режим работы библиотеки "%s", используйте допустимые режимы: "%s"',
+            4 => '%s: не передан SQL запрос',
+            5 => '%s: ошибка выполнения SQL запроса: %s; SQL: "%s"',
+            6 => 'попытка указать для заполнителя типа "%s" значение типа "%s" в шаблоне запроса "%s". ' .
+                'Вы можете включить толерантный режим работы библиотеки, если вам не нужна строгая типизация аргументов.',
+            7 => '%s: количество заполнителей в запросе "%s" не соответствует переданному количеству аргументов',
+            8 => 'Несовпадение количества аргументов и заполнителей в массиве, запрос: "%s", переданые аргументы: "%s"',
+            9 => 'Попытка воспользоваться заполнителем массива без указания типа данных его элементов',
+            10 => 'Два символа `.` идущие подряд в имени столбца или таблицы',
+        ],
+    ];
+
+    /**
      * Имя текущей БД.
      *
      * @var string
@@ -106,6 +142,13 @@ class Mysql
     private bool $store_queries = false;
 
     /**
+     * Язык сообщений об ошибках.
+     *
+     * @var string
+     */
+    private string $lang = 'en';
+
+    /**
      * @param string|null $server
      * @param string|null $username
      * @param string|null $password
@@ -125,7 +168,30 @@ class Mysql
     }
 
     /**
-     * Задает набор символов по умолчанию.
+     * Устанавливает язык вывода ошибок.
+     *
+     * @param string $lang
+     * @return $this
+     * @throws MySqlException
+     */
+    public function setErrorMessagesLang(string $lang): self
+    {
+        if (!array_key_exists($lang, $this->i18n_error_messages)) {
+            throw new MySqlException(sprintf(
+                '%s: language "%s" is not supported, use any of: "%s". ' .
+                "Make a pull request for this library, or derive a new class from class 'Mysql' and add the " .
+                "internationalization language for your language to property self::\$exception_i18n_messages",
+                __METHOD__, $lang, implode('", "', array_keys($this->i18n_error_messages))
+            ));
+        }
+
+        $this->lang = $lang;
+
+        return $this;
+    }
+
+    /**
+     * Задаёт набор символов, который будет использоваться при обмене данными с сервером баз данных.
      * Вызов данного метода эквивалентен следующей установки конфигурации MySql-сервера:
      * SET character_set_client = charset_name;
      * SET character_set_results = charset_name;
@@ -134,12 +200,13 @@ class Mysql
      * @param string $charset
      * @return Mysql
      * @throws MySqlException
+     * @see mysqli::set_charset
      */
     public function setCharset(string $charset): Mysql
     {
         if (!$this->mysqli->set_charset($charset)) {
             throw new MySqlException(sprintf(
-                '%s: %s', __METHOD__, $this->mysqli->error
+                $this->i18n_error_messages[$this->lang][0], __METHOD__, $this->mysqli->error
             ));
         }
 
@@ -151,6 +218,7 @@ class Mysql
      *
      * @param void
      * @return string
+     * @see mysqli::character_set_name
      */
     public function getCharset(): string
     {
@@ -163,12 +231,13 @@ class Mysql
      * @param string имя базы данных
      * @return Mysql
      * @throws MySqlException
+     * @see mysqli::select_db
      */
     public function setDatabaseName(string $database_name): Mysql
     {
         if (!$database_name) {
             throw new MySqlException(sprintf(
-                '%s: Не указано имя базы данных', __METHOD__
+                $this->i18n_error_messages[$this->lang][1], __METHOD__
             ));
         }
 
@@ -176,7 +245,7 @@ class Mysql
 
         if (!$this->mysqli->select_db($this->database_name)) {
             throw new MySqlException(sprintf(
-                '%s: %s', __METHOD__, $this->mysqli->error
+                $this->i18n_error_messages[$this->lang][2], __METHOD__, $this->mysqli->error
             ));
         }
 
@@ -202,9 +271,12 @@ class Mysql
      */
     public function setTypeMode(int $type): Mysql
     {
-        if (!in_array($type, array(self::MODE_STRICT, self::MODE_TRANSFORM))) {
+        if (!in_array($type, [self::MODE_STRICT, self::MODE_TRANSFORM])) {
             throw new MySqlException(sprintf(
-                '%s: Указан неизвестный тип режима', __METHOD__
+                $this->i18n_error_messages[$this->lang][3],
+                __METHOD__,
+                $type,
+                implode('", "', [self::MODE_STRICT, self::MODE_TRANSFORM])
             ));
         }
 
@@ -238,12 +310,13 @@ class Mysql
      *         Для остальных успешных запросов метод вернёт true.
      *         При ошибке последует исключение MySqlException
      * @throws MySqlException
+     * @see mysqli::query
      */
     public function query(mixed ...$args): bool|Statement
     {
         if (!func_num_args()) {
             throw new MySqlException(sprintf(
-                '%s: Не передан SQL-запрос', __METHOD__
+                $this->i18n_error_messages[$this->lang][4], __METHOD__
             ));
         }
 
@@ -259,7 +332,7 @@ class Mysql
 
         if ($result === false) {
             throw new MySqlException(sprintf(
-                '%s: %s; SQL: %s',
+                $this->i18n_error_messages[$this->lang][5],
                 __METHOD__,
                 $this->mysqli->error,
                 $this->query
@@ -276,7 +349,7 @@ class Mysql
     /**
      * Поведение аналогично методу self::query(), только метод принимает только два параметра -
      * SQL запрос $query и массив аргументов $arguments, которые и будут заменены на заменители в той
-     * последовательности, в которой они представленны в массиве $arguments.
+     * последовательности, в которой они представлены в массиве $arguments.
      *
      * @param string
      * @param array
@@ -309,7 +382,7 @@ class Mysql
     {
         if (!func_num_args()) {
             throw new MySqlException(sprintf(
-                '%s: Не передан SQL-запрос', __METHOD__
+                $this->i18n_error_messages[$this->lang][4], __METHOD__
             ));
         }
 
@@ -325,6 +398,7 @@ class Mysql
      * все записи таблицы будут удалены, но функция возвратит ноль.
      *
      * @return int
+     * @see mysqli::affected_rows
      */
     public function getAffectedRows(): int
     {
@@ -365,6 +439,7 @@ class Mysql
      * Возвращает id, сгенерированный предыдущей операцией INSERT.
      *
      * @return int
+     * @see mysqli::insert_id
      */
     public function getLastInsertId(): int
     {
@@ -437,6 +512,7 @@ class Mysql
      *
      * @return $this
      * @throws MySqlException
+     * @see mysqli::connect
      */
     private function connect(): Mysql
     {
@@ -452,7 +528,7 @@ class Mysql
 
             if ($this->mysqli->connect_error) {
                 throw new MySqlException(sprintf(
-                    '%s: %s', __METHOD__, $this->mysqli->connect_error
+                    '%s: database connection error: %s', __METHOD__, $this->mysqli->connect_error
                 ));
             }
         }
@@ -464,6 +540,7 @@ class Mysql
      * Закрывает MySQL-соединение.
      *
      * @return void
+     * @see mysqli::close
      */
     private function close(): void
     {
@@ -500,6 +577,7 @@ class Mysql
      * @see mysqli_real_escape_string
      * @param string
      * @return string
+     * @see mysqli::real_escape_string
      */
     private function mysqlRealEscapeString($value): string
     {
@@ -516,12 +594,7 @@ class Mysql
      */
     private function createErrorMessage(string $type, mixed $value, string $original_query): string
     {
-        return sprintf(
-            "Попытка указать для заполнителя типа '%s' значение типа '%s' в шаблоне запроса %s",
-            $type,
-            gettype($value),
-            $original_query
-        );
+        return sprintf($this->i18n_error_messages[$this->lang][6], $type, gettype($value), $original_query);
     }
 
     /**
@@ -552,10 +625,7 @@ class Mysql
 
             if (!$args) {
                 throw new MySqlException(sprintf(
-                     '%s: количество заполнителей в запросе %s не соответствует ' .
-                     'переданному количеству аргументов',
-                    __METHOD__,
-                     $original_query
+                    $this->i18n_error_messages[$this->lang][7], __METHOD__, $original_query
                 ));
             }
 
@@ -632,8 +702,7 @@ class Mysql
 
                             if (count($value) != count($placeholders)) {
                                 throw new MySqlException(sprintf(
-                                    'Несовпадение количества аргументов и заполнителей в массиве, запрос: %s',
-                                    $original_query
+                                    $this->i18n_error_messages[$this->lang][8], $original_query, implode('", "', $value)
                                 ));
                             }
 
@@ -700,7 +769,7 @@ class Mysql
                         }
                     } else {
                         throw new MySqlException(
-                            'Попытка воспользоваться заполнителем массива без указания типа данных его элементов'
+                            $this->i18n_error_messages[$this->lang][9]
                         );
                     }
 
@@ -894,7 +963,7 @@ class Mysql
                         $new_value .= '.';
                     } else {
                         throw new MySqlException(
-                            'Два символа `.` идущие подряд в имени столбца или таблицы'
+                            $this->i18n_error_messages[$this->lang][10]
                         );
                     }
                 } else {

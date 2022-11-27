@@ -20,14 +20,21 @@ use Krugozor\Database\MySqlException;
 
 try {
     $db = Mysql::create('localhost', 'root', 'root');
-    // Включим статистику исполненных запросов:
-    $db->setStoreQueries(true);
-    // Выбор БД для работы.
-    $db->setDatabaseName('test');
+
+    $db
+        // Язык вывода ошибок - русский
+        ->setErrorMessagesLang('ru')
+        // Зададим кодировку обмена
+        ->setCharset('utf8')
+        // Включим статистику исполненных запросов
+        ->setStoreQueries(true)
+        // Выбор БД для работы
+        ->setDatabaseName('test');
 
     // Наглядный пример двух режимов работы библиотеки:
 
     // 1. Режим Mysql::MODE_TRANSFORM
+    $db->setTypeMode(Mysql::MODE_TRANSFORM);
 
     // Результат: 8 - простое сложение двух integer
     $result = $db->query('SELECT ?i + ?i', 3, 5);
@@ -139,5 +146,5 @@ try {
     // Совершим ошибку - будет исключение типа MySqlException.
     $db->query('SELECT * FROM `not_exists_table`');
 } catch (MySqlException $e) {
-    echo  "Исключение: " . $e->getMessage() . PHP_EOL;
+    echo "Исключение: " . $e->getMessage() . PHP_EOL;
 }
