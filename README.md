@@ -113,164 +113,132 @@ $result = mysqli_query($mysql, "SELECT * FROM `t` WHERE `f1` = '$value' AND `f2`
 Now it has become easy to write queries, quickly, and most importantly, the `krugozor/database` library completely prevents any possible
 SQL injections.
 
-
-Типы заполнителей и типы параметров SQL-запроса
+Introduction to placeholder system
 ---
 
-Типы заполнителей и их предназначение описываются ниже. Прежде чем знакомиться с типами заполнителей, необходимо понять
-как работает механизм библиотеки Database.
+The types of placeholders and their purpose are described below. Before getting acquainted with placeholder types, it is necessary to understand how the mechanism of the `krugozor/database` library works. Example:
 
 ```php
  $db->query("SELECT ?i", 123); 
 ```
-
-SQL-запрос после преобразования шаблона:
-
+SQL query after template conversion:
 ```sql
 SELECT 123
 ```
+During the execution of this command *the library checks if the argument `123` is an integer value*. The placeholder `?i` is the character `?` (question mark) and the first letter of the word `integer`. If the argument is indeed an integer data type, then the placeholder `?i` in the SQL query template is replaced with the value `123` and the SQL is passed for execution.
 
-В процессе исполнения этой команды *библиотека проверяет, является ли аргумент `123` целочисленным значением*.
-Заполнитель `?i` представляет собой символ `?` (знак вопроса) и первую букву слова `integer`. Если аргумент
-действительно представляет собой целочисленный тип данных, то в шаблоне SQL-запроса заполнитель `?i` заменяется на
-значение `123` и SQL передается на исполнение.
-
-Поскольку PHP слаботипизированный язык, то вышеописанное выражение эквивалентно нижеописанному:
+Since PHP is a weakly typed language, the above expression is equivalent to the following:
 
 ```php
  $db->query("SELECT ?i", '123'); 
  ```
-
-SQL-запрос после преобразования шаблона:
-
+SQL query after template conversion:
  ```sql
  SELECT 123
  ```
 
-т.е. числа (целые и с плавающей точкой) представленные как в своем типе, так и в виде `string` — равнозначны с точки
-зрения библиотеки.
+that is, numbers (integer and floating point) represented both in their type and in the form of `string` are equivalent from the point of view of the library.
 
-### Приведение к типу заполнителя
 
- ```php
-  $db->query("SELECT ?i", '123.7'); 
-  ```
-
-SQL-запрос после преобразования шаблона:
-
-  ```sql
-  SELECT 123
-  ```
-
-В данном примере заполнитель целочисленного типа данных ожидает значение типа `integer`, а передается `double`. **
-По-умолчанию библиотека работает в режиме приведения типов, что дало в итоге приведение типа `double` к `int`**.
-
-Режимы работы библиотеки и принудительное приведение типов
+Library Modes and Forced Type Casting
 ----
-Существует два режима работы библиотеки:
+There are two modes of library operation:
 
-* **Mysql::MODE_STRICT** — строгий режим соответствия типа заполнителя и типа аргумента. В режиме MODE_STRICT аргументы
-  должны соответствовать типу заполнителя. Например, попытка передать в качестве аргумента значение `55.5` или `'55.5'`
-  для заполнителя целочисленного типа `?i` приведет к выбросу исключения:
+* **Mysql::MODE_STRICT - strict match mode for placeholder type and argument type**.
+  In `Mysql::MODE_STRICT` mode, *arguments must match the placeholder type*. For example, an attempt to pass the value `55.5` or `'55.5'` as an argument for an integer placeholder `?i` will result in an exception being thrown:
 
 ```php
-// устанавливаем строгий режим работы
+// set strict mode
 $db->setTypeMode(Mysql::MODE_STRICT);
-// это выражение не будет исполнено, будет выброшено исключение:
-// Попытка указать для заполнителя типа int значение типа double в шаблоне запроса SELECT ?i
+// this expression will not be executed, an exception will be thrown:
+// Trying to set placeholder type "int" to value type "double" in query template "SELECT ?i"
 $db->query('SELECT ?i', 55.5);
 ```
 
-* **Mysql::MODE_TRANSFORM** — режим преобразования аргумента к типу заполнителя при несовпадении типа заполнителя и типа
-  аргумента. Режим MODE_TRANSFORM установлен по-умолчанию и является "толерантным" режимом — при несоответствии типа
-  заполнителя и типа аргумента не генерирует исключение, а **пытается преобразовать аргумент к нужному типу заполнителя
-  посредством самого языка PHP**. К слову сказать, я, как автор библиотеки, всегда использую именно этот режим, строгий
-  режим (Mysql::MODE_STRICT) я сделал чисто "по фану" и в реальной работе никогда не использовал.
+* **Mysql::MODE_TRANSFORM — argument conversion mode to placeholder type when placeholder type and argument type do not match.** throws an exception, and *attempts to convert the argument to the correct placeholder type using PHP itself*. By the way, I, as the author of the library, always use this particular mode, I have never used strict mode (`Mysql::MODE_STRICT`) in real work, but perhaps you will need it specifically.
 
-**Допускаются следующие преобразования в режиме Mysql::MODE_TRANSFORM:**
+**The following transformations are allowed in `Mysql::MODE_TRANSFORM`:**
 
-* **К типу `int` (заполнитель `?i`) приводятся**
-    * числа с плавающей точкой, представленные как `string` или тип `double`
-    * `bool` TRUE преобразуется в `int(1)`, FALSE преобразуется в `int(0)`
-    * null преобразуется в `int(0)`
-* **К типу `double` (заполнитель `?d`) приводятся**
-    * целые числа, представленные как `string` или тип `int`
-    * `bool` TRUE преобразуется в `float(1)`, FALSE преобразуется в `float(0)`
-    * `null` преобразуется в `float(0)`
-* **К типу `string` (заполнитель `?s`) приводятся**
-    * `bool` TRUE преобразуется в `string(1) "1"`, FALSE преобразуется в `string(1) "0"`. Это поведение отличается от
-      приведения типа `bool` к `int` в PHP, т.к. зачастую, на практике, булев тип записывается в MySql именно как число.
-    * значение типа `numeric` преобразуется в строку согласно правилам преобразования PHP
-    * `NULL` преобразуется в `string(0) ""`
-* **К типу `null` (заполнитель `?n`) приводятся**
-    * любые аргументы.
-* Для массивов, объектов и ресурсов преобразования не допускаются.
+* **Cast to type `int` (placeholder `?i`)**
+  * floating point numbers represented as `string` or `double` type
+  * `bool` TRUE is converted to `int(1)`, FALSE is converted to `int(0)`
+  * null is converted to `int(0)`
+* **Cast to type `double` (placeholder `?d`)**
+  * integers represented as `string` or type `int`
+  * `bool` TRUE becomes `float(1)`, FALSE becomes `float(0)`
+  * `null` is converted to `float(0)`
+* **Cast to type `string` (placeholder `?s`)**
+  * `bool` TRUE is converted to `string(1) "1"`, FALSE is converted to `string(1) "0"`. This behavior is different from
+    casting `bool` to `int` in PHP often, in practice, the boolean type is written in MySql as a number.
+  * a `numeric` value is converted to a string according to PHP's conversion rules
+  * `NULL` is converted to `string(0) ""`
+* **Cast to type `null` (placeholder `?n`)**
+  * any arguments.
+* For arrays, objects and resources, conversions are not allowed.
 
-Какие типы заполнителей представлены в библиотеке Database?
+What types of placeholders are provided in the `krugozor/database` library?
 ---
 
-### `?i` — заполнитель целого числа
+### `?i` — integer placeholder
 
 ```php
-$db->query('SELECT * FROM `users` WHERE `id` = ?i', $value); 
+$db->query('SELECT * FROM `users` WHERE `id` = ?i', $_POST['user_id']); 
 ```
 
-**ВНИМАНИЕ!** Если вы оперируете числами, выходящими за пределы PHP_INT_MAX, то:
+**WARNING!** If you operate on numbers that are outside the limits of `PHP_INT_MAX`, then:
 
-* Оперируйте ими исключительно как строками в своих программах.
-* Не используйте данный заполнитель, используйте заполнитель строки `?s` (см. ниже). Дело в том, что числа, выходящие за
-  пределы PHP_INT_MAX, PHP интерпретирует как числа с плавающей точкой. Парсер библиотеки постарается преобразовать
-  параметр к типу int, в итоге «*результат будет неопределенным, так как float не имеет достаточной точности, чтобы
-  вернуть верный результат. В этом случае не будет выведено ни предупреждения, ни даже замечания!*»
-  — <a href="http://php.net/manual/ru/language.types.integer.php#language.types.integer.casting.from-float">php.net</a>.
+* Operate them exclusively as strings in your programs.
+* Don't use this placeholder, use the string placeholder `?s` (see below). The point is that numbers beyond
+  limits `PHP_INT_MAX`, PHP interprets as floating point numbers. The library parser will try to convert
+  parameter to type `int`, as a result "*the result will be undefined, since the float does not have sufficient precision to
+  return the correct result. In this case, neither a warning nor even a remark will be displayed!*” — [php.net](https://www.php.net/manual/en/language.types.integer.php#language.types.integer.casting.from-float).
 
-### `?d` — заполнитель числа с плавающей точкой
+### `?d` — floating point placeholder
 
 ```php
-$db->query('SELECT * FROM `prices` WHERE `cost` = ?d', $value); 
+$db->query('SELECT * FROM `prices` WHERE `cost` = ?d', 12.56); 
 ```
 
-**ВНИМАНИЕ!** Если вы используете библиотеку для работы с типом данных `double`, установите соответствующую локаль, что
-бы разделитель целой и дробной части был одинаков как на уровне PHP, так и на уровне СУБД.
+**WARNING!** If you are using a library to work with the `double` data type, set the appropriate locale so that
+If the separator of the integer and fractional parts were the same both at the PHP level and at the DBMS level.
 
-### `?s` — заполнитель строкового типа
+### `?s` — string type placeholder
 
-Значение аргументов экранируются с помощью функции PHP `mysqli_real_escape_string()`:
+The argument values are escaped using the `mysqli::real_escape_string()` method:
 
 ```php
- $db->query('SELECT "?s"', "Вы все пидарасы, а я - Д'Артаньян!");
+ $db->query('SELECT "?s"', "You are all fools, and I am D'Artagnan!");
  ```
 
-SQL-запрос после преобразования шаблона:
+SQL query after template conversion:
 
 ```sql
-SELECT "Вы все пидарасы, а я - Д\'Артаньян!"
+SELECT "You are all fools, and I am D\'Artagnan!"
 ```
 
-### `?S` — заполнитель строкового типа для подстановки в SQL-оператор LIKE
+### `?S` — string type placeholder for substitution in the SQL LIKE operator
 
-Значение аргументов экранируются с помощью функции PHP `mysqli_real_escape_string()` + экранирование спецсимволов,
-используемых в операторе LIKE (`%` и `_`):
+Argument values are escaped using the `mysqli::real_escape_string()` method + escaping special characters used in the LIKE operator (`%` and `_`):
 
 ```php
  $db->query('SELECT "?S"', '% _'); 
  ```
 
-SQL-запрос после преобразования шаблона:
+SQL query after template conversion:
 
  ```sql
  SELECT "\% \_"
  ```
 
-### `?n` — заполнитель `NULL` типа
+### `?n` — placeholder `NULL` type
 
-Значение любых аргументов игнорируются, заполнители заменяются на строку `NULL` в SQL запросе:
+The value of any arguments is ignored, placeholders are replaced with the string `NULL` in the SQL query:
 
 ```php
  $db->query('SELECT ?n', 123); 
  ```
 
-SQL-запрос после преобразования шаблона:
+SQL query after template conversion:
 
  ```sql
  SELECT NULL
