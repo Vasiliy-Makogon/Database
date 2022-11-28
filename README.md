@@ -160,18 +160,17 @@ $db->query('SELECT ?i', 55.5);
 **The following transformations are allowed in `Mysql::MODE_TRANSFORM`:**
 
 * **Cast to type `int` (placeholder `?i`)**
-  * floating point numbers represented as `string` or `double` type
+  * floating point numbers represented both in `string` and `double` types
   * `bool` TRUE is converted to `int(1)`, FALSE is converted to `int(0)`
-  * null is converted to `int(0)`
+  * `null` is converted to `int(0)`
 * **Cast to type `double` (placeholder `?d`)**
-  * integers represented as `string` or type `int`
+  * integers represented in both `string` and `int` types
   * `bool` TRUE becomes `float(1)`, FALSE becomes `float(0)`
   * `null` is converted to `float(0)`
 * **Cast to type `string` (placeholder `?s`)**
-  * `bool` TRUE is converted to `string(1) "1"`, FALSE is converted to `string(1) "0"`. This behavior is different from
-    casting `bool` to `int` in PHP often, in practice, the boolean type is written in MySql as a number.
+  * `bool` TRUE is converted to `string(1) "1"`, FALSE is converted to `string(1) "0"`. This behavior is different from casting `bool` to `int` in PHP, as often, in practice, the boolean type is written in MySql as a number.
   * a `numeric` value is converted to a string according to PHP's conversion rules
-  * `NULL` is converted to `string(0) ""`
+  * `null` is converted to `string(0) ""`
 * **Cast to type `null` (placeholder `?n`)**
   * any arguments.
 * For arrays, objects and resources, conversions are not allowed.
