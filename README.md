@@ -1,8 +1,8 @@
-**Русскоязычная документация находится [тут](README_rus.md).**
+**![](https://upload.wikimedia.org/wikipedia/en/thumb/f/f3/Flag_of_Russia.svg/23px-Flag_of_Russia.svg.png) Русскоязычная документация находится [тут](README_rus.md).**
 
 ---
 
-Getting the Library
+![](https://upload.wikimedia.org/wikipedia/en/thumb/a/ae/Flag_of_the_United_Kingdom.svg/23px-Flag_of_the_United_Kingdom.svg.png) Getting the Library
 ---
 You can [download it as an archive](https://github.com/Vasiliy-Makogon/Database/archive/master.zip), clone from this
 site, or download via composer ([link to packagist.org](https://packagist.org/packages/krugozor/database)):
