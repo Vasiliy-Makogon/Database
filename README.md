@@ -243,126 +243,107 @@ SQL query after template conversion:
  SELECT NULL
  ```
 
-### `?A*` — заполнитель ассоциативного множества из ассоциативного массива, генерирующий последовательность пар `ключ = значение`
+### `?A*` — associative set placeholder from an associative array, generating a sequence of pairs of the form `key = value`
 
-Пример: `"key_1" = "val_1", "key_2" = "val_2", ..., "key_N" = "val_N"`
+where the character `*` is one of the placeholders:
 
-где **\*** после заполнителя — один из типов:
+* `i` (integer placeholder)
+* `d` (float placeholder)
+* `s` (string type placeholder)
 
-* `i` (заполнитель целого числа)
-* `d` (заполнитель числа с плавающей точкой)
-* `s` (заполнитель строкового типа)
-
-правила преобразования и экранирования такие же, как и для одиночных скалярных типов, описанных выше. Пример:
+the rules for conversion and escaping are the same as for the single scalar types described above. Example:
 
 ```php
-$db->query('INSERT INTO `test` SET ?Ai', ['first' => 123, 'second' => 1.99]);
+$db->query('INSERT INTO `test` SET ?Ai', ['first' => '123', 'second' => 1.99]);
 ```
-
-SQL-запрос после преобразования шаблона:
-
+SQL query after template conversion:
 ```sql
-INSERT INTO `test`
-SET `first` = "123", `second` = "1"
+INSERT INTO `test` SET `first` = "123", `second` = "1"
 ```
 
-### `?a*` — заполнитель множества из простого (или также ассоциативного) массива, генерирующий последовательность значений
+### `?a*` - set placeholder from a simple (or also associative) array, generating a sequence of values
 
-Пример: `"val_1", "val_2", ..., "val_N"`
+where `*` is one of the types:
+* `i` (integer placeholder)
+* `d` (float placeholder)
+* `s` (string type placeholder)
 
-где **\*** после заполнителя — один из типов:
-
-* `i` (заполнитель целого числа)
-* `d` (заполнитель числа с плавающей точкой)
-* `s` (заполнитель строкового типа)
-
-правила преобразования и экранирования такие же, как и для одиночных скалярных типов, описанных выше. Пример:
+the rules for conversion and escaping are the same as for the single scalar types described above. Example:
 
 ```php
  $db->query('SELECT * FROM `test` WHERE `id` IN (?ai)', [123, 1.99]);
 ```
-
-SQL-запрос после преобразования шаблона:
-
+SQL query after template conversion:
 ```sql
- SELECT *
- FROM `test`
- WHERE `id` IN ("123", "1")
+ SELECT * FROM `test` WHERE `id` IN ("123", "1")
 ```
 
-### `?A[?n, ?s, ?i, ...]` — заполнитель ассоциативного множества с явным указанием типа и количества аргументов, генерирующий последовательность пар `ключ = значение`
 
-Пример:
+### `?A[?n, ?s, ?i, ...]` — associative set placeholder with an explicit indication of the type and number of arguments, generating a sequence of `key = value` pairs
 
+Example:
 ```php
- $db->query('INSERT INTO `test` SET ?A[?i, "?s"]', ['first' => 1.3, 'second' => "Д'Артаньян"]);
+ $db->query('INSERT INTO `test` SET ?A[?i, "?s"]', ['first' => 100, 'second' => "Д'Артаньян"]);
 ```
-
-SQL-запрос после преобразования шаблона:
-
+SQL query after template conversion:
 ```sql
- INSERT INTO `test`
- SET `first` = 1,`second` = "Д\'Артаньян"
+ INSERT INTO `test` SET `first` = 100,`second` = "Д\'Артаньян"
 ```
 
-### `?a[?n, ?s, ?i]` — заполнитель множества с явным указанием типа и количества аргументов, генерирующий последовательность значений
+### `?a[?n, ?s, ?i]` — set placeholder with an explicit indication of the type and number of arguments, generating a sequence of values
+
+Example:
 
 ```php
  $db->query('SELECT * FROM `test` WHERE `value` IN (?a[?i, "?s"])', [1.3, "Д'Артаньян"]);
 ```
-
-SQL-запрос после преобразования шаблона:
-
+SQL query after template conversion:
 ```sql
- SELECT *
- FROM `test`
- WHERE `value` IN (1, "Д\'Артаньян")
+ SELECT * FROM `test` WHERE `value` IN (1, "Д\'Артаньян")
 ```
 
-### `?f` — заполнитель имени таблицы или поля
 
-Данный заполнитель предназначен для случаев, когда имя таблицы или поля передается в запросе через параметр. Имена полей
-и таблиц обрамляется символом апостроф:
+### `?f` — table or field name placeholder
+
+This placeholder is intended for cases where the name of a table or field is passed in the query as a parameter. Field and table names are framed with an apostrophe:
 
 ```php
  $db->query('SELECT ?f FROM ?f', 'name', 'database.table_name');
  ```
-
-SQL-запрос после преобразования шаблона:
-
+SQL query after template conversion:
  ```sql
-  SELECT `name`
-  FROM `database`.`table_name`
+  SELECT `name` FROM `database`.`table_name`
  ```
 
-Ограничивающие кавычки
+
+Delimiting quotes
 ---
 
-Библиотека **требует** от программиста соблюдения синтаксиса SQL. Это значит, что следующий запрос работать не будет:
+**The library requires the programmer to follow the SQL syntax.** This means that the following query will not work:
 
 ```php
 $db->query('SELECT CONCAT("Hello, ", ?s, "!")', 'world');
 ```
 
-— заполнитель `?s` необходимо взять в одинарные или двойные кавычки:
+— placeholder `?s` must be enclosed in single or double quotes:
 
 ```php
 $db->query('SELECT concat("Hello, ", "?s", "!")', 'world');
 ```
 
-SQL-запрос после преобразования шаблона:
+SQL query after template conversion:
 
 ```sql
 SELECT concat("Hello, ", "world", "!")
 ```
 
-Для тех, кто привык работать с PDO это покажется странным, но реализовать механизм, определяющий, нужно ли в одном
-случае заключать значение заполнителя в кавычки или нет — очень нетривиальная задача, трубующая написания целого
-парсера.
+For those who are used to working with PDO, this will seem strange, but implementing a mechanism that determines whether it is necessary to enclose the placeholder value in quotes in one case or not is a very non-trivial task that requires writing a whole parser.
 
 
-Примеры работы с библиотекой
+Examples of working with the library
 ---
+
+in the process of translation....
 
 ```php
 // Предположим, что установили библиотеку через composer 

@@ -122,9 +122,9 @@ class Mysql
     /**
      * Строка последнего SQL-запроса ПОСЛЕ преобразования.
      *
-     * @var string
+     * @var string|null
      */
-    private string $query;
+    private ?string $query = null;
 
     /**
      * Массив со всеми запросами, которые были выполнены объектом.
@@ -418,9 +418,9 @@ class Mysql
     /**
      * Возвращает последний выполненный MySQL-запрос (после преобразования).
      *
-     * @return string
+     * @return string|null
      */
-    public function getQueryString(): string
+    public function getQueryString(): ?string
     {
         return $this->query;
     }
