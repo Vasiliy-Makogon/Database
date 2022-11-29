@@ -2,8 +2,8 @@
 
 ---
 
-![](https://upload.wikimedia.org/wikipedia/en/thumb/a/ae/Flag_of_the_United_Kingdom.svg/23px-Flag_of_the_United_Kingdom.svg.png) Getting the Library
----
+## ![](https://upload.wikimedia.org/wikipedia/en/thumb/a/ae/Flag_of_the_United_Kingdom.svg/23px-Flag_of_the_United_Kingdom.svg.png) Getting the Library
+
 You can [download it as an archive](https://github.com/Vasiliy-Makogon/Database/archive/master.zip), clone from this
 site, or download via composer ([link to packagist.org](https://packagist.org/packages/krugozor/database)):
 ```
@@ -11,14 +11,13 @@ composer require krugozor/database
 ```
 
 
-What is `krugozor/database`?
----
+## What is `krugozor/database`?
 
 `krugozor/database` is a PHP 8.0 class library for simple, convenient, fast and secure work with the MySql database, using
 the PHP extension [mysqli](https://www.php.net/en/mysqli).
 
-Why do we need a self-written class for MySql if PHP has a PDO abstraction and a mysqli extension?
----
+
+### Why do we need a self-written class for MySql if PHP has a PDO abstraction and a mysqli extension?
 
 The main disadvantages of all libraries for working with the mysql database in PHP are::
 
@@ -42,12 +41,14 @@ The main disadvantages of all libraries for working with the mysql database in P
       native libraries [NOT PROVIDED](https://qna.habr.com/q/22669).
       It remains either to pervert, or to climb into the database log.
 
-Solution: `krugozor/database` is a class for working with MySql
----
+
+### Solution: `krugozor/database` is a class for working with MySql
 
 1. Eliminates verbosity - instead of 3 or more lines of code to execute one request when using the "native" library, you write only one.
 2. Screens all parameters that go to the request body, according to the specified type of placeholders - reliable protection against SQL injections.
 3. Does not replace the functionality of the "native" mysqli adapter, but simply complements it.
+4. Expandable. In fact, the library provides only a parser and the execution of a SQL query with guaranteed protection against SQL injections. You can inherit from any library class and use both the library mechanisms and the `mysqli` and `mysqli_result` mechanisms to create the methods you need to work with.
+
 
 ### What is NOT the `krugozor/database` library?
 
@@ -59,8 +60,7 @@ The `krugozor/database` library is none of the above. This is just a convenient 
 MySQL DBMS - and no more!
 
 
-What are placeholders?
----
+## What are placeholders?
 
 **Placeholders** — special *typed markers* that are written in the SQL query string *instead of
 explicit values (query parameters)*. And the values themselves are passed "later", as subsequent arguments to the main
@@ -81,7 +81,7 @@ $db = Mysql::create("localhost", "root", "password")
       ->setDatabaseName("test")
       // Encoding selection
       ->setCharset("utf8")
-      // Enable storage of executed queries for reporting/debugging/statistics
+      // Enable storage of all SQL queries for reporting/debugging/statistics
       ->setStoreQueries(true);
 
 // Getting a result object \Krugozor\Database\Statement
@@ -113,8 +113,7 @@ $result = mysqli_query($mysql, "SELECT * FROM `t` WHERE `f1` = '$value' AND `f2`
 Now it has become easy to write queries, quickly, and most importantly, the `krugozor/database` library completely prevents any possible
 SQL injections.
 
-Introduction to placeholder system
----
+### Introduction to placeholder system
 
 The types of placeholders and their purpose are described below. Before getting acquainted with placeholder types, it is necessary to understand how the mechanism of the `krugozor/database` library works. Example:
 
@@ -140,8 +139,8 @@ SQL query after template conversion:
 that is, numbers (integer and floating point) represented both in their type and in the form of `string` are equivalent from the point of view of the library.
 
 
-Library Modes and Forced Type Casting
-----
+### Library Modes and Forced Type Casting
+
 There are two modes of library operation:
 
 * **Mysql::MODE_STRICT - strict match mode for placeholder type and argument type**.
@@ -175,16 +174,18 @@ $db->query('SELECT ?i', 55.5);
   * any arguments.
 * For arrays, objects and resources, conversions are not allowed.
 
-What types of placeholders are provided in the `krugozor/database` library?
----
+**ATTENTION!** The following explanation of the library will go on assuming that the `Mysql::MODE_TRANSFORM` mode is activated.
 
-### `?i` — integer placeholder
+### What types of placeholders are provided in the `krugozor/database` library?
+
+
+#### `?i` — integer placeholder
 
 ```php
 $db->query('SELECT * FROM `users` WHERE `id` = ?i', $_POST['user_id']); 
 ```
 
-**WARNING!** If you operate on numbers that are outside the limits of `PHP_INT_MAX`, then:
+**ATTENTION!** If you operate on numbers that are outside the limits of `PHP_INT_MAX`, then:
 
 * Operate them exclusively as strings in your programs.
 * Don't use this placeholder, use the string placeholder `?s` (see below). The point is that numbers beyond
@@ -192,16 +193,16 @@ $db->query('SELECT * FROM `users` WHERE `id` = ?i', $_POST['user_id']);
   parameter to type `int`, as a result "*the result will be undefined, since the float does not have sufficient precision to
   return the correct result. In this case, neither a warning nor even a remark will be displayed!*” — [php.net](https://www.php.net/manual/en/language.types.integer.php#language.types.integer.casting.from-float).
 
-### `?d` — floating point placeholder
+#### `?d` — floating point placeholder
 
 ```php
 $db->query('SELECT * FROM `prices` WHERE `cost` = ?d', 12.56); 
 ```
 
-**WARNING!** If you are using a library to work with the `double` data type, set the appropriate locale so that
+**ATTENTION!** If you are using a library to work with the `double` data type, set the appropriate locale so that
 If the separator of the integer and fractional parts were the same both at the PHP level and at the DBMS level.
 
-### `?s` — string type placeholder
+#### `?s` — string type placeholder
 
 The argument values are escaped using the `mysqli::real_escape_string()` method:
 
@@ -215,7 +216,7 @@ SQL query after template conversion:
 SELECT "You are all fools, and I am D\'Artagnan!"
 ```
 
-### `?S` — string type placeholder for substitution in the SQL LIKE operator
+#### `?S` — string type placeholder for substitution in the SQL LIKE operator
 
 Argument values are escaped using the `mysqli::real_escape_string()` method + escaping special characters used in the LIKE operator (`%` and `_`):
 
@@ -229,7 +230,7 @@ SQL query after template conversion:
  SELECT "\% \_"
  ```
 
-### `?n` — placeholder `NULL` type
+#### `?n` — placeholder `NULL` type
 
 The value of any arguments is ignored, placeholders are replaced with the string `NULL` in the SQL query:
 
@@ -243,7 +244,7 @@ SQL query after template conversion:
  SELECT NULL
  ```
 
-### `?A*` — associative set placeholder from an associative array, generating a sequence of pairs of the form `key = value`
+#### `?A*` — associative set placeholder from an associative array, generating a sequence of pairs of the form `key = value`
 
 where the character `*` is one of the placeholders:
 
@@ -261,7 +262,7 @@ SQL query after template conversion:
 INSERT INTO `test` SET `first` = "123", `second` = "1"
 ```
 
-### `?a*` - set placeholder from a simple (or also associative) array, generating a sequence of values
+#### `?a*` - set placeholder from a simple (or also associative) array, generating a sequence of values
 
 where `*` is one of the types:
 * `i` (integer placeholder)
@@ -279,7 +280,7 @@ SQL query after template conversion:
 ```
 
 
-### `?A[?n, ?s, ?i, ...]` — associative set placeholder with an explicit indication of the type and number of arguments, generating a sequence of `key = value` pairs
+#### `?A[?n, ?s, ?i, ...]` — associative set placeholder with an explicit indication of the type and number of arguments, generating a sequence of `key = value` pairs
 
 Example:
 ```php
@@ -290,7 +291,7 @@ SQL query after template conversion:
  INSERT INTO `test` SET `first` = 100,`second` = "Д\'Артаньян"
 ```
 
-### `?a[?n, ?s, ?i, ...]` — set placeholder with an explicit indication of the type and number of arguments, generating a sequence of values
+#### `?a[?n, ?s, ?i, ...]` — set placeholder with an explicit indication of the type and number of arguments, generating a sequence of values
 
 Example:
 
@@ -303,7 +304,7 @@ SQL query after template conversion:
 ```
 
 
-### `?f` — table or field name placeholder
+#### `?f` — table or field name placeholder
 
 This placeholder is intended for cases where the name of a table or field is passed in the query as a parameter. Field and table names are framed with an apostrophe:
 
@@ -316,8 +317,7 @@ SQL query after template conversion:
  ```
 
 
-Delimiting quotes
----
+### Delimiting quotes
 
 **The library requires the programmer to follow the SQL syntax.** This means that the following query will not work:
 
@@ -340,8 +340,7 @@ SELECT concat("Hello, ", "world", "!")
 For those who are used to working with PDO, this will seem strange, but implementing a mechanism that determines whether it is necessary to enclose the placeholder value in quotes in one case or not is a very non-trivial task that requires writing a whole parser.
 
 
-Examples of working with the library
----
+## Examples of working with the library
 
 in the process of translation....
 
