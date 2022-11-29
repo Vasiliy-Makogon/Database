@@ -290,7 +290,7 @@ SQL query after template conversion:
  INSERT INTO `test` SET `first` = 100,`second` = "Д\'Артаньян"
 ```
 
-### `?a[?n, ?s, ?i]` — set placeholder with an explicit indication of the type and number of arguments, generating a sequence of values
+### `?a[?n, ?s, ?i, ...]` — set placeholder with an explicit indication of the type and number of arguments, generating a sequence of values
 
 Example:
 
