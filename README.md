@@ -155,7 +155,7 @@ $db->setTypeMode(Mysql::MODE_STRICT);
 $db->query('SELECT ?i', 55.5);
 ```
 
-* **Mysql::MODE_TRANSFORM — argument conversion mode to placeholder type when placeholder type and argument type do not match.** throws an exception, and *attempts to convert the argument to the correct placeholder type using PHP itself*. By the way, I, as the author of the library, always use this particular mode, I have never used strict mode (`Mysql::MODE_STRICT`) in real work, but perhaps you will need it specifically.
+* **Mysql::MODE_TRANSFORM — argument conversion mode to placeholder type when placeholder type and argument type do not match.** The `Mysql::MODE_TRANSFORM` mode is set by default and is a "tolerant" mode - if the placeholder type and the argument type do not match, it does not throw an exception, but *tryes to convert the argument to the desired placeholder type using the PHP language itself*. By the way, I, as the author of the library, always use this particular mode, I have never used strict mode (`Mysql::MODE_STRICT`) in real work, but perhaps you will need it specifically.
 
 **The following transformations are allowed in `Mysql::MODE_TRANSFORM`:**
 
