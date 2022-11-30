@@ -20,8 +20,6 @@
     "ext-mysqli": "*",
     "ext-mbstring": "*"
   },
-  "minimum-stability": "dev",
-  "prefer-stable": true,
   "authors": [
     {
       "name": "Vasiliy Makogon",
