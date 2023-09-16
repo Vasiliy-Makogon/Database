@@ -6,30 +6,18 @@ use mysqli;
 use mysqli_result;
 
 /**
- * @author Vasiliy Makogon, makogon-vs@yandex.ru
+ * @author Vasiliy Makogon
  * @link https://github.com/Vasiliy-Makogon/Database/
  */
 class Mysql
 {
-    /**
-     * Строгий режим работы.
-     *
-     * @var int
-     */
+    /** @var int Строгий режим работы */
     public const MODE_STRICT = 1;
 
-    /**
-     * Толерантный режим работы.
-     *
-     * @var int
-     */
+    /** @var int Толерантный режим работы */
     public const MODE_TRANSFORM = 2;
 
-    /**
-     * Актуальный режим работы.
-     *
-     * @var int
-     */
+    /** @var int Актуальный режим работы */
     protected int $type_mode = self::MODE_TRANSFORM;
 
     /** @var string|null */
@@ -47,6 +35,32 @@ class Mysql
     /** @var int|string|null */
     protected int|string|null $socket;
 
+    /** @var string Имя текущей БД */
+    protected string $database_name;
+
+    /** @var mysqli|null */
+    protected ?mysqli $mysqli = null;
+
+    /** @var string|null Строка последнего SQL-запроса ДО преобразования */
+    private ?string $original_query = null;
+
+    /** @var string|null Строка последнего SQL-запроса ПОСЛЕ преобразования */
+    private ?string $query = null;
+
+    /**
+     * Массив со всеми запросами, которые были выполнены объектом.
+     * Ключи - SQL после преобразования, значения - SQL до преобразования.
+     *
+     * @var array
+     */
+    private array $queries = [];
+
+    /** @var bool Накапливать ли в хранилище self::$queries SQL-запросы */
+    private bool $store_queries = false;
+
+    /** @var string Язык сообщений об ошибках */
+    private string $lang = 'en';
+
     /**
      * Сообщения об ошибках на разных языках.
      *
@@ -60,12 +74,12 @@ class Mysql
             3 => '%s: unknown mode specified for library "%s", use allowed modes: "%s"',
             4 => '%s: no SQL query passed',
             5 => '%s: SQL query execution error: %s; SQL: %s',
-            6 => 'attempted to set placeholder type "%s" to value type "%s" in query template "%s". ' .
-                'You can enable the tolerant behavior of the library if you don\'t need strong argument typing.',
+            6 => 'attempted to set placeholder type "%s" to value type "%s" in query template "%s"',
             7 => '%s: number of placeholders in query "%s" does not match number of arguments passed',
             8 => 'Mismatch in the number of arguments and placeholders in the array, query: "%s"',
             9 => 'Attempting to use an array placeholder without specifying the data type of its elements',
             10 => 'Two consecutive `.` characters in a column or table name',
+            11 => '%s: database connection error: %s',
         ],
         'ru' => [
             0 => '%s: ошибка установки кодировки: %s',
@@ -74,62 +88,14 @@ class Mysql
             3 => '%s: указан неизвестный режим работы библиотеки "%s", используйте допустимые режимы: "%s"',
             4 => '%s: не передан SQL запрос',
             5 => '%s: ошибка выполнения SQL запроса: %s; SQL: "%s"',
-            6 => 'попытка указать для заполнителя типа "%s" значение типа "%s" в шаблоне запроса "%s". ' .
-                'Вы можете включить толерантный режим работы библиотеки, если вам не нужна строгая типизация аргументов.',
+            6 => 'попытка указать для заполнителя типа "%s" значение типа "%s" в шаблоне запроса "%s"',
             7 => '%s: количество заполнителей в запросе "%s" не соответствует переданному количеству аргументов',
             8 => 'Несовпадение количества аргументов и заполнителей в массиве, запрос: "%s", переданые аргументы: "%s"',
             9 => 'Попытка воспользоваться заполнителем массива без указания типа данных его элементов',
             10 => 'Два символа `.` идущие подряд в имени столбца или таблицы',
+            11 => '%s: ошибка подключения к базе данных: %s',
         ],
     ];
-
-    /**
-     * Имя текущей БД.
-     *
-     * @var string
-     */
-    protected string $database_name;
-
-    /**
-     * @var mysqli|null
-     */
-    protected ?mysqli $mysqli = null;
-
-    /**
-     * Строка последнего SQL-запроса ДО преобразования.
-     *
-     * @var string
-     */
-    private string $original_query;
-
-    /**
-     * Строка последнего SQL-запроса ПОСЛЕ преобразования.
-     *
-     * @var string|null
-     */
-    private ?string $query = null;
-
-    /**
-     * Массив со всеми запросами, которые были выполнены объектом.
-     * Ключи - SQL после преобразования, значения - SQL до преобразования.
-     *
-     * @var array
-     */
-    private array $queries = [];
-
-    /**
-     * Накапливать ли в хранилище self::$queries SQL-запросы.
-     *
-     * @var bool
-     */
-    private bool $store_queries = false;
-
-    /**
-     * Язык сообщений об ошибках.
-     *
-     * @var string
-     */
-    private string $lang = 'en';
 
     /**
      * @param string|null $server
@@ -187,10 +153,27 @@ class Mysql
      */
     public function setCharset(string $charset): Mysql
     {
-        if (!$this->mysqli->set_charset($charset)) {
+        // Отлов в переменную $mysqli_sql_exception исключения при подключении
+        // в режиме MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT
+        $mysqli_sql_exception = null;
+
+        try {
+            // Подавление `собакой` вывода ошибки для режима MYSQLI_REPORT_ERROR
+            $result = @$this->mysqli->set_charset($charset);
+        } catch (\mysqli_sql_exception $mysqli_sql_exception) {
+            $result = false;
+        }
+
+        // Выявляем источник данных об ошибке
+        $error_code = $mysqli_sql_exception ? $mysqli_sql_exception->getCode() : $this->mysqli->errno;
+        $error_message = $mysqli_sql_exception ? $mysqli_sql_exception->getMessage() : $this->mysqli->error;
+
+        if ($result === false) {
             throw new MySqlException(sprintf(
-                $this->i18n_error_messages[$this->lang][0], __METHOD__, $this->mysqli->error
-            ));
+                $this->i18n_error_messages[$this->lang][0],
+                __METHOD__,
+                $error_message
+            ), $error_code, $mysqli_sql_exception);
         }
 
         return $this;
@@ -226,10 +209,27 @@ class Mysql
 
         $this->database_name = $database_name;
 
-        if (!$this->mysqli->select_db($this->database_name)) {
+        // Отлов в переменную $mysqli_sql_exception исключения при подключении
+        // в режиме MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT
+        $mysqli_sql_exception = null;
+
+        try {
+            // Подавление `собакой` вывода ошибки для режима MYSQLI_REPORT_ERROR
+            $result = @$this->mysqli->select_db($this->database_name);
+        } catch (\mysqli_sql_exception $mysqli_sql_exception) {
+            $result = false;
+        }
+
+        // Выявляем источник данных об ошибке
+        $error_code = $mysqli_sql_exception ? $mysqli_sql_exception->getCode() : $this->mysqli->errno;
+        $error_message = $mysqli_sql_exception ? $mysqli_sql_exception->getMessage() : $this->mysqli->error;
+
+        if ($result === false) {
             throw new MySqlException(sprintf(
-                $this->i18n_error_messages[$this->lang][2], __METHOD__, $this->mysqli->error
-            ));
+                $this->i18n_error_messages[$this->lang][2],
+                __METHOD__,
+                $error_message
+            ), $error_code, $mysqli_sql_exception);
         }
 
         return $this;
@@ -307,19 +307,32 @@ class Mysql
 
         $this->query = $this->parse($query, $args);
 
-        $result = $this->mysqli->query($this->query);
+        // Отлов в переменную $mysqli_sql_exception исключения при подключении
+        // в режиме MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT
+        $mysqli_sql_exception = null;
+
+        try {
+            // Подавление `собакой` вывода ошибки для режима MYSQLI_REPORT_ERROR
+            $result = @$this->mysqli->query($this->query, MYSQLI_STORE_RESULT);
+        } catch (\mysqli_sql_exception $mysqli_sql_exception) {
+            $result = false;
+        }
 
         if ($this->store_queries) {
             $this->queries[$this->query] = $this->original_query;
         }
 
+        // Выявляем источник данных об ошибке
+        $error_code = $mysqli_sql_exception ? $mysqli_sql_exception->getCode() : $this->mysqli->errno;
+        $error_message = $mysqli_sql_exception ? $mysqli_sql_exception->getMessage() : $this->mysqli->error;
+
         if ($result === false) {
             throw new MySqlException(sprintf(
                 $this->i18n_error_messages[$this->lang][5],
                 __METHOD__,
-                $this->mysqli->error,
+                $error_message,
                 $this->query
-            ));
+            ), $error_code, $mysqli_sql_exception);
         }
 
         if (is_object($result) && $result instanceof mysqli_result) {
@@ -391,9 +404,9 @@ class Mysql
     /**
      * Возвращает последний оригинальный SQL-запрос до преобразования.
      *
-     * @return string
+     * @return string|null
      */
-    public function getOriginalQueryString(): string
+    public function getOriginalQueryString(): ?string
     {
         return $this->original_query;
     }
@@ -499,20 +512,32 @@ class Mysql
      */
     private function connect(): Mysql
     {
-        if (!is_object($this->mysqli) || !$this->mysqli instanceof mysqli) {
-            $this->mysqli = @new mysqli(
-                $this->server,
-                $this->user,
-                $this->password,
-                null,
-                $this->port,
-                $this->socket
-            );
+        if (is_null($this->mysqli)) {
+            // Отлов в переменную $mysqli_sql_exception исключения при подключении
+            // в режиме MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT
+            $mysqli_sql_exception = null;
 
-            if ($this->mysqli->connect_error) {
+            try {
+                // Подавление `собакой` вывода ошибки для режима MYSQLI_REPORT_ERROR
+                $this->mysqli = @new mysqli(
+                    $this->server,
+                    $this->user,
+                    $this->password,
+                    null,
+                    $this->port,
+                    $this->socket
+                );
+            } catch (\mysqli_sql_exception $mysqli_sql_exception) {}
+
+            // Выявляем источник данных об ошибке
+            $error_code = $mysqli_sql_exception ? $mysqli_sql_exception->getCode() : $this->mysqli->connect_errno;
+            $error_message = $mysqli_sql_exception ? $mysqli_sql_exception->getMessage() : $this->mysqli->connect_error;
+
+            if ($error_code && $error_message) {
+                $this->mysqli = null;
                 throw new MySqlException(sprintf(
-                    '%s: database connection error: %s', __METHOD__, $this->mysqli->connect_error
-                ));
+                    $this->i18n_error_messages[$this->lang][11], __METHOD__, $error_message
+                ), $error_code, $mysqli_sql_exception);
             }
         }
 
@@ -628,7 +653,7 @@ class Mysql
                 case 's':
                     $value = $this->getValueStringType($value, $original_query);
                     $value = !empty($is_like_escaping) ? $this->escapeLike($value) : $this->mysqlRealEscapeString($value);
-                    $query = mb_substr_replace($query, $value, $posQM, 2);
+                    $query = static::mb_substr_replace($query, $value, $posQM, 2);
                     $offset += mb_strlen($value);
                     break;
 
@@ -638,28 +663,28 @@ class Mysql
                 // для bool, null и string типа.
                 case 'i':
                     $value = $this->getValueIntType($value, $original_query);
-                    $query = mb_substr_replace($query, $value, $posQM, 2);
+                    $query = static::mb_substr_replace($query, $value, $posQM, 2);
                     $offset += mb_strlen($value);
                     break;
 
                 // double
                 case 'd':
                     $value = $this->getValueFloatType($value, $original_query);
-                    $query = mb_substr_replace($query, $value, $posQM, 2);
+                    $query = static::mb_substr_replace($query, $value, $posQM, 2);
                     $offset += mb_strlen($value);
                     break;
 
                 // NULL insert
                 case 'n':
                     $value = $this->getValueNullType($value, $original_query);
-                    $query = mb_substr_replace($query, $value, $posQM, 2);
+                    $query = static::mb_substr_replace($query, $value, $posQM, 2);
                     $offset += mb_strlen($value);
                     break;
 
                 // field or table name
                 case 'f':
                     $value = $this->escapeFieldName($value, $original_query);
-                    $query = mb_substr_replace($query, $value, $posQM, 2);
+                    $query = static::mb_substr_replace($query, $value, $posQM, 2);
                     $offset += mb_strlen($value);
                     break;
 
@@ -711,7 +736,7 @@ class Mysql
                                 $value = implode(', ', $replacements);
                             }
 
-                            $query = mb_substr_replace(
+                            $query = static::mb_substr_replace(
                                 $query,
                                 $value,
                                 $posQM,
@@ -747,7 +772,7 @@ class Mysql
                             $value = implode(', ', $parts);
                             $value = $value !== '' ? $value : 'NULL';
 
-                            $query = mb_substr_replace($query, $value, $posQM, 3);
+                            $query = static::mb_substr_replace($query, $value, $posQM, 3);
                             $offset += mb_strlen($value);
                         }
                     } else {
@@ -989,14 +1014,12 @@ class Mysql
 
         return gettype($val) === "double" || preg_match("/^([+-]*\\d+)*\\.(\\d+)*$/", $val) === 1;
     }
-}
 
-if (!function_exists("mb_substr_replace"))
-{
     /**
      * Заменяет часть строки string, начинающуюся с символа с порядковым номером start
      * и (необязательной) длиной length, строкой replacement и возвращает результат.
      *
+     * @see substr_replace
      * @param $string
      * @param $replacement
      * @param $start
@@ -1004,7 +1027,7 @@ if (!function_exists("mb_substr_replace"))
      * @param null $encoding
      * @return string
      */
-    function mb_substr_replace($string, $replacement, $start, $length = null, $encoding = null): string
+    private static function mb_substr_replace($string, $replacement, $start, $length = null, $encoding = null): string
     {
         if ($encoding == null) {
             $encoding = mb_internal_encoding();
