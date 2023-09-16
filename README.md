@@ -13,7 +13,7 @@ composer require krugozor/database
 
 ## What is `krugozor/database`?
 
-`krugozor/database` is a PHP 8.0 class library for simple, convenient, fast and secure work with the MySql database, using
+`krugozor/database` is a PHP >= 8.0 class library for simple, convenient, fast and secure work with the MySql database, using
 the PHP extension [mysqli](https://www.php.net/en/mysqli).
 
 

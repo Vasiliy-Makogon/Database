@@ -8,7 +8,7 @@ composer require krugozor/database
 
 ## Что такое `krugozor/database`?
 
-`krugozor/database` — библиотека классов на PHP 8.0 для простой, удобной, быстрой и безопасной работы с базой данных MySql, использующая расширение PHP [mysqli](https://www.php.net/manual/ru/book.mysqli.php).
+`krugozor/database` — библиотека классов на PHP >= 8.0 для простой, удобной, быстрой и безопасной работы с базой данных MySql, использующая расширение PHP [mysqli](https://www.php.net/manual/ru/book.mysqli.php).
 
 
 ### Зачем нужен самописный класс для MySql, если в PHP есть абстракция PDO и расширение mysqli?
